@@ -39,8 +39,8 @@ class ImprovedNicknameGenerator {
         if (this.stylePreferences && this.stylePreferences.size > 0) {
             const styleMatched = available.filter(item => this.matchesStyleKeywords(item));
             if (styleMatched.length > 0) {
-                // 80% 확률로 스타일 매칭되는 키워드 선택
-                if (this.random.next() < 0.8) {
+                // 95% 확률로 스타일 매칭되는 키워드 선택 (키워드 확장으로 더 강하게 적용)
+                if (this.random.next() < 0.95) {
                     available = styleMatched;
                 }
             }
@@ -59,18 +59,38 @@ class ImprovedNicknameGenerator {
         // 스타일 필터의 키워드 가져오기
         const styleFilter = new StyleFilter();
 
+        // 스타일이 1개면 OR 로직 (기존)
+        if (this.stylePreferences.size === 1) {
+            for (const styleKey of this.stylePreferences) {
+                const style = styleFilter.styleCategories[styleKey];
+                if (!style) continue;
+
+                for (const keyword of style.keywords) {
+                    if (text.includes(keyword)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // 스타일이 2개 이상이면 점수 기반 매칭
+        let matchCount = 0;
         for (const styleKey of this.stylePreferences) {
             const style = styleFilter.styleCategories[styleKey];
             if (!style) continue;
 
             for (const keyword of style.keywords) {
                 if (text.includes(keyword)) {
-                    return true;
+                    matchCount++;
+                    break; // 스타일당 한 번만 카운트
                 }
             }
         }
 
-        return false;
+        // 선택한 스타일 중 최소 50% 이상 매칭되면 통과
+        const threshold = Math.ceil(this.stylePreferences.size * 0.5);
+        return matchCount >= threshold;
     }
 
     // 15가지 다양한 조합 템플릿
