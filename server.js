@@ -8,9 +8,33 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// CORS 허용
-app.use(cors());
-app.use(express.json());
+// CORS 설정 - 특정 도메인만 허용 (프로덕션에서는 실제 도메인으로 변경)
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',  // Vite 개발 서버
+    'https://saju-nickname.vercel.app',
+    'https://*.vercel.app'  // Vercel preview 배포
+];
+
+app.use(cors({
+    origin: function(origin, callback) {
+        // origin이 없는 경우(같은 도메인) 또는 허용 목록에 있는 경우 허용
+        if (!origin || allowedOrigins.some(allowed => {
+            if (allowed.includes('*')) {
+                const regex = new RegExp(allowed.replace('*', '.*'));
+                return regex.test(origin);
+            }
+            return allowed === origin;
+        })) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS policy: 허용되지 않은 도메인입니다.'));
+        }
+    },
+    credentials: true
+}));
+
+app.use(express.json({ limit: '10kb' })); // JSON 페이로드 크기 제한
 
 // Rate Limiting - API 남용 방지
 const apiLimiter = rateLimit({
@@ -39,11 +63,43 @@ const generalLimiter = rateLimit({
 
 app.use(generalLimiter);
 
+// 글로벌 API 호출 카운터 (메모리 기반 - 프로덕션에서는 Redis 사용 권장)
+let globalApiCallCount = 0;
+let globalCounterResetTime = Date.now() + 60000; // 1분마다 리셋
+
+// 글로벌 쿼터 체크 미들웨어
+const globalQuotaCheck = (req, res, next) => {
+    const now = Date.now();
+
+    // 1분 경과 시 카운터 리셋
+    if (now > globalCounterResetTime) {
+        globalApiCallCount = 0;
+        globalCounterResetTime = now + 60000;
+    }
+
+    // 1분당 최대 50회 글로벌 제한 (모든 IP 합산)
+    const GLOBAL_MAX_PER_MINUTE = parseInt(process.env.GLOBAL_API_LIMIT) || 50;
+
+    if (globalApiCallCount >= GLOBAL_MAX_PER_MINUTE) {
+        return res.status(429).json({
+            error: '서버가 현재 과부하 상태입니다. 잠시 후 다시 시도해주세요.',
+            retryAfter: Math.ceil((globalCounterResetTime - now) / 1000)
+        });
+    }
+
+    globalApiCallCount++;
+    next();
+};
+
+// 간단한 메모리 캐시 (프로덕션에서는 Redis 사용 권장)
+const apiCache = new Map();
+const CACHE_TTL = 3600000; // 1시간
+
 // 정적 파일 제공
 app.use(express.static(__dirname));
 
-// API 프록시 엔드포인트 - Rate Limiting 적용
-app.get('/api/saju', apiLimiter, async (req, res) => {
+// API 프록시 엔드포인트 - Rate Limiting + Global Quota + Caching 적용
+app.get('/api/saju', apiLimiter, globalQuotaCheck, async (req, res) => {
     const { year, month, day } = req.query;
 
     // 입력 유효성 검사
@@ -61,6 +117,17 @@ app.get('/api/saju', apiLimiter, async (req, res) => {
         });
     }
 
+    // 캐시 키 생성
+    const cacheKey = `${year}-${month}-${day}`;
+
+    // 캐시 확인
+    const cached = apiCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        // 캐시 히트 - 헤더 추가
+        res.set('X-Cache', 'HIT');
+        return res.json(cached.data);
+    }
+
     // 환경변수에서 API 키 로드
     const API_KEY = process.env.KASI_API_KEY;
 
@@ -74,17 +141,26 @@ app.get('/api/saju', apiLimiter, async (req, res) => {
     try {
         const url = `http://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService/getLunCalInfo?serviceKey=${API_KEY}&solYear=${year}&solMonth=${month}&solDay=${day}&_type=json`;
 
-        // 보안: 로그 비활성화 (원하면 주석 해제)
-        // console.log('API 호출:', url);
-
         const response = await fetch(url);
         const text = await response.text();
-
-        // console.log('API 응답:', text);
 
         // XML 또는 JSON 응답 처리
         try {
             const data = JSON.parse(text);
+
+            // 캐시에 저장
+            apiCache.set(cacheKey, {
+                data: data,
+                timestamp: Date.now()
+            });
+
+            // 캐시 크기 제한 (최대 1000개 항목)
+            if (apiCache.size > 1000) {
+                const firstKey = apiCache.keys().next().value;
+                apiCache.delete(firstKey);
+            }
+
+            res.set('X-Cache', 'MISS');
             res.json(data);
         } catch (e) {
             // XML 응답인 경우

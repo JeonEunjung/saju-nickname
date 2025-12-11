@@ -2,35 +2,56 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
-const path = require('path');
 const rateLimit = require('express-rate-limit');
 
 const app = express();
 
-// CORS 허용
-app.use(cors());
-app.use(express.json());
+// CORS 설정 - 특정 도메인만 허용
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://saju-nickname.vercel.app',
+    'https://*.vercel.app'
+];
+
+app.use(cors({
+    origin: function(origin, callback) {
+        if (!origin || allowedOrigins.some(allowed => {
+            if (allowed.includes('*')) {
+                const regex = new RegExp(allowed.replace('*', '.*'));
+                return regex.test(origin);
+            }
+            return allowed === origin;
+        })) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS policy: 허용되지 않은 도메인입니다.'));
+        }
+    },
+    credentials: true
+}));
+
+app.use(express.json({ limit: '10kb' }));
 
 // Rate Limiting - API 남용 방지
 const apiLimiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60000, // 1분
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 10, // 1분당 최대 10회
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60000,
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 10,
     message: {
         error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
         retryAfter: '1분'
     },
-    standardHeaders: true, // RateLimit-* 헤더 반환
-    legacyHeaders: false, // X-RateLimit-* 헤더 비활성화
-    // IP 기반 + User Agent 기반 제한
+    standardHeaders: true,
+    legacyHeaders: false,
     keyGenerator: (req) => {
         return `${req.ip}_${req.get('User-Agent')}`;
     }
 });
 
-// 전역 Rate Limiting (더 관대한 제한)
+// 전역 Rate Limiting
 const generalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15분
-    max: 100, // 15분당 최대 100회
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     message: {
         error: '너무 많은 요청이 감지되었습니다. 15분 후 다시 시도해주세요.'
     }
@@ -38,8 +59,35 @@ const generalLimiter = rateLimit({
 
 app.use(generalLimiter);
 
-// API 프록시 엔드포인트 - Rate Limiting 적용
-app.get('/api/saju', apiLimiter, async (req, res) => {
+// 글로벌 API 호출 카운터 (Vercel 서버리스 환경에서는 제한적)
+let globalApiCallCount = 0;
+let globalCounterResetTime = Date.now() + 60000;
+
+const globalQuotaCheck = (req, res, next) => {
+    const now = Date.now();
+    if (now > globalCounterResetTime) {
+        globalApiCallCount = 0;
+        globalCounterResetTime = now + 60000;
+    }
+
+    const GLOBAL_MAX_PER_MINUTE = parseInt(process.env.GLOBAL_API_LIMIT) || 50;
+    if (globalApiCallCount >= GLOBAL_MAX_PER_MINUTE) {
+        return res.status(429).json({
+            error: '서버가 현재 과부하 상태입니다. 잠시 후 다시 시도해주세요.',
+            retryAfter: Math.ceil((globalCounterResetTime - now) / 1000)
+        });
+    }
+
+    globalApiCallCount++;
+    next();
+};
+
+// 메모리 캐시 (Vercel 서버리스에서는 콜드 스타트마다 리셋됨)
+const apiCache = new Map();
+const CACHE_TTL = 3600000; // 1시간
+
+// API 프록시 엔드포인트 - 모든 보안 조치 적용
+app.get('/api/saju', apiLimiter, globalQuotaCheck, async (req, res) => {
     const { year, month, day } = req.query;
 
     // 입력 유효성 검사
@@ -55,6 +103,16 @@ app.get('/api/saju', apiLimiter, async (req, res) => {
         return res.status(400).json({
             error: '올바른 날짜를 입력해주세요.'
         });
+    }
+
+    // 캐시 키 생성
+    const cacheKey = `${year}-${month}-${day}`;
+
+    // 캐시 확인
+    const cached = apiCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        res.set('X-Cache', 'HIT');
+        return res.json(cached.data);
     }
 
     // 환경변수에서 API 키 로드
@@ -76,6 +134,20 @@ app.get('/api/saju', apiLimiter, async (req, res) => {
         // XML 또는 JSON 응답 처리
         try {
             const data = JSON.parse(text);
+
+            // 캐시에 저장
+            apiCache.set(cacheKey, {
+                data: data,
+                timestamp: Date.now()
+            });
+
+            // 캐시 크기 제한
+            if (apiCache.size > 1000) {
+                const firstKey = apiCache.keys().next().value;
+                apiCache.delete(firstKey);
+            }
+
+            res.set('X-Cache', 'MISS');
             res.json(data);
         } catch (e) {
             // XML 응답인 경우

@@ -16,11 +16,12 @@ API 키가 GitHub에 노출되지 않도록 Vercel에서 환경변수를 직접 
 
 #### 필수 환경변수
 
-| Name | Value | Environment |
-|------|-------|-------------|
-| `KASI_API_KEY` | `015d8edde7d39a3d92155a2da9ded3b775c57bd46f573188cad317905292f5ca` | Production, Preview, Development |
-| `RATE_LIMIT_WINDOW_MS` | `60000` | Production, Preview, Development |
-| `RATE_LIMIT_MAX_REQUESTS` | `10` | Production, Preview, Development |
+| Name | Value | Environment | 설명 |
+|------|-------|-------------|------|
+| `KASI_API_KEY` | `015d8edde7d39a3d92155a2da9ded3b775c57bd46f573188cad317905292f5ca` | Production, Preview, Development | 한국천문연구원 API 키 |
+| `RATE_LIMIT_WINDOW_MS` | `60000` | Production, Preview, Development | Rate Limit 시간 윈도우 (1분) |
+| `RATE_LIMIT_MAX_REQUESTS` | `10` | Production, Preview, Development | IP당 1분 최대 요청 수 |
+| `GLOBAL_API_LIMIT` | `50` | Production, Preview, Development | 전체 서버 1분당 최대 API 호출 |
 
 ### 3. 환경변수 입력 상세
 
