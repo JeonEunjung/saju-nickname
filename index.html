@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사주 기반 부캐명 추천</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>✨ 사주로 알아보는 나의 부캐명 ✨</h1>
+            <p class="subtitle">당신의 사주 특성을 분석하여 딱 맞는 부캐명을 추천해드립니다</p>
+        </header>
+
+        <!-- 인트로 섹션 -->
+        <div class="intro-section" id="introSection">
+            <div class="intro-content">
+                <div class="intro-icon">🎭</div>
+                <h2>부캐 작명소에 오신 것을 환영합니다</h2>
+
+                <div class="intro-text">
+                    <p class="intro-lead">
+                        게임, 커뮤니티, SNS... 우리는 매일 밥 먹듯이 새로운 이름을 짓고 있습니다.<br>
+                        하지만 막상 작명을 하려면 막막하죠?
+                    </p>
+
+                    <div class="intro-highlight">
+                        <div class="highlight-icon">🌟</div>
+                        <div>
+                            <h3>명리학의 지혜를 현대적으로</h3>
+                            <p>연예인, 유튜버들도 활동명을 지을 때 사주를 고려합니다. 전통 명리학에서는 <strong>"사주가 '몸'이라면 이름은 '옷'"</strong>이라고 말합니다. 잘 맞는 옷이 당신의 운을 돕기 때문이죠.</p>
+                        </div>
+                    </div>
+
+                    <div class="intro-philosophy">
+                        <h4>💎 명리학 기반 작명의 원리</h4>
+                        <div class="philosophy-grid">
+                            <div class="philosophy-card">
+                                <div class="philosophy-number">1</div>
+                                <h5>🔮 사주 분석 (선천 운명)</h5>
+                                <p>생년월일시(사주팔자)를 통해 타고난 오행(木火土金水)의 강약과 필요한 기운을 파악합니다.</p>
+                            </div>
+                            <div class="philosophy-card">
+                                <div class="philosophy-number">2</div>
+                                <h5>⚖️ 보완과 조화</h5>
+                                <p>부족하거나 넘치는 오행을 이름의 한자, 획수, 발음, 뜻으로 조절하여 운의 흐름을 좋게 만듭니다.</p>
+                            </div>
+                            <div class="philosophy-card">
+                                <div class="philosophy-number">3</div>
+                                <h5>✨ 성명학 원리</h5>
+                                <p>한글 발음의 음양, 글자의 의미 등 여러 요소를 종합하여 당신만의 특별한 이름을 만듭니다.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="intro-points">
+                        <div class="point-item">
+                            <span class="point-emoji">🎮</span>
+                            <div>
+                                <strong>게임 캐릭터명</strong>
+                                <p>나의 운을 살리는 닉네임으로</p>
+                            </div>
+                        </div>
+                        <div class="point-item">
+                            <span class="point-emoji">💬</span>
+                            <div>
+                                <strong>커뮤니티 활동명</strong>
+                                <p>개성있는 이름으로 첫인상 업</p>
+                            </div>
+                        </div>
+                        <div class="point-item">
+                            <span class="point-emoji">📱</span>
+                            <div>
+                                <strong>SNS 프로필명</strong>
+                                <p>기억에 남는 아이덴티티로</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="intro-cta-text">지금 바로 나만의 운을 담은 부캐명을 찾아보세요!</p>
+                </div>
+
+                <button class="intro-start-btn" onclick="document.getElementById('introSection').style.display='none'; document.getElementById('inputSection').style.display='block'; document.getElementById('year').focus();">
+                    시작하기 →
+                </button>
+            </div>
+        </div>
+
+        <div class="input-section" id="inputSection" style="display: none;">
+            <h2>생년월일시 입력</h2>
+            <form id="sajuForm">
+                <div class="form-group">
+                    <label for="year">년도</label>
+                    <input type="number" id="year" placeholder="예: 1990" min="1900" max="2100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="month">월</label>
+                    <select id="month" required>
+                        <option value="">선택</option>
+                        <option value="1">1월</option>
+                        <option value="2">2월</option>
+                        <option value="3">3월</option>
+                        <option value="4">4월</option>
+                        <option value="5">5월</option>
+                        <option value="6">6월</option>
+                        <option value="7">7월</option>
+                        <option value="8">8월</option>
+                        <option value="9">9월</option>
+                        <option value="10">10월</option>
+                        <option value="11">11월</option>
+                        <option value="12">12월</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="day">일</label>
+                    <input type="number" id="day" placeholder="예: 15" min="1" max="31" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="hour">시</label>
+                    <select id="hour" required>
+                        <option value="">선택</option>
+                        <option value="0">자시 (23:30-01:30)</option>
+                        <option value="1">축시 (01:30-03:30)</option>
+                        <option value="2">인시 (03:30-05:30)</option>
+                        <option value="3">묘시 (05:30-07:30)</option>
+                        <option value="4">진시 (07:30-09:30)</option>
+                        <option value="5">사시 (09:30-11:30)</option>
+                        <option value="6">오시 (11:30-13:30)</option>
+                        <option value="7">미시 (13:30-15:30)</option>
+                        <option value="8">신시 (15:30-17:30)</option>
+                        <option value="9">유시 (17:30-19:30)</option>
+                        <option value="10">술시 (19:30-21:30)</option>
+                        <option value="11">해시 (21:30-23:30)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">성별</label>
+                    <select id="gender" required>
+                        <option value="">선택</option>
+                        <option value="male">남성</option>
+                        <option value="female">여성</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn">사주 분석하기</button>
+            </form>
+        </div>
+
+        <div id="result" class="result-section" style="display: none;">
+            <h2>🔮 분석 결과</h2>
+
+            <div class="saju-info">
+                <h3>📋 사주팔자</h3>
+                <div id="sajuDisplay"></div>
+            </div>
+
+            <div class="characteristics">
+                <h3>🌟 사주 특성</h3>
+                <div id="characteristicsDisplay"></div>
+            </div>
+
+            <div class="nickname-recommendation">
+                <h3>💫 추천 부캐명</h3>
+
+                <div class="nickname-type-selector">
+                    <button class="type-btn active" data-type="enhance">💪 내 특성 살리기</button>
+                    <button class="type-btn" data-type="balance">⚖️ 부족한 기운 채우기</button>
+                </div>
+
+                <!-- 스타일 필터 -->
+                <div class="style-filter-container">
+                    <h4>🎨 원하는 스타일 선택 (선택사항)</h4>
+                    <div class="style-tags" id="styleTags"></div>
+                    <button class="filter-apply-btn" id="applyFilterBtn">필터 적용하기</button>
+                </div>
+
+                <div id="nicknameDisplay"></div>
+            </div>
+
+            <button class="retry-btn" onclick="location.reload()">다시 분석하기</button>
+        </div>
+    </div>
+
+    <script src="saju.js"></script>
+    <script src="saju-api.js"></script>
+    <script src="nickname.js"></script>
+    <script src="nickname-advanced.js"></script>
+    <script src="nickname-korean.js"></script>
+    <script src="seeded-random.js"></script>
+    <script src="enhanced-keywords.js"></script>
+    <script src="nickname-improved.js"></script>
+    <script src="style-filter.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
