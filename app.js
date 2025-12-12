@@ -74,6 +74,7 @@ function validateInput(year, month, day) {
 
 // 사주팔자 표시
 function displaySaju(saju) {
+    // 천간과 지지 각각의 오행 색상 적용
     const sajuTable = `
         <table class="saju-table">
             <tr>
@@ -83,22 +84,30 @@ function displaySaju(saju) {
                 <th>년주</th>
             </tr>
             <tr>
-                <td class="${ELEMENT_PROPERTIES[saju.hour.element].color}">
-                    ${saju.hour.stem}<br>${saju.hour.branch}
+                <td>
+                    <span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.hour.stem]].color}">${saju.hour.stem}</span>
+                    <br>
+                    <span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.hour.branch]].color}">${saju.hour.branch}</span>
                 </td>
-                <td class="${ELEMENT_PROPERTIES[saju.day.element].color}">
-                    ${saju.day.stem}<br>${saju.day.branch}
+                <td>
+                    <span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.day.stem]].color}">${saju.day.stem}</span>
+                    <br>
+                    <span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.day.branch]].color}">${saju.day.branch}</span>
                 </td>
-                <td class="${ELEMENT_PROPERTIES[saju.month.element].color}">
-                    ${saju.month.stem}<br>${saju.month.branch}
+                <td>
+                    <span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.month.stem]].color}">${saju.month.stem}</span>
+                    <br>
+                    <span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.month.branch]].color}">${saju.month.branch}</span>
                 </td>
-                <td class="${ELEMENT_PROPERTIES[saju.year.element].color}">
-                    ${saju.year.stem}<br>${saju.year.branch}
+                <td>
+                    <span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.year.stem]].color}">${saju.year.stem}</span>
+                    <br>
+                    <span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.year.branch]].color}">${saju.year.branch}</span>
                 </td>
             </tr>
             <tr>
                 <td colspan="4" style="background: #f8f9ff; padding: 10px;">
-                    <strong>일간(본인):</strong> ${saju.dayMaster}
+                    <strong>일간(본인):</strong> <span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.dayMaster]].color}">${saju.dayMaster}</span>
                     (${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.dayMaster]].name})
                 </td>
             </tr>
@@ -307,9 +316,8 @@ function initializeStyleFilter() {
     });
 }
 
-// 페이지 로드 시 애니메이션
+// 입력 필드 포커스 효과
 document.addEventListener('DOMContentLoaded', function() {
-    // 입력 필드에 포커스 효과
     const inputs = document.querySelectorAll('input, select');
     inputs.forEach(input => {
         input.addEventListener('focus', function() {

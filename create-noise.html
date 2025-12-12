@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Noise Generator</title>
+</head>
+<body>
+    <canvas id="canvas" width="512" height="512"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.createImageData(512, 512);
+        
+        // 필름 그레인 노이즈 생성 (흑백 혼합)
+        for (let i = 0; i < imageData.data.length; i += 4) {
+            const noise = Math.random() * 255;
+            imageData.data[i] = noise;     // R
+            imageData.data[i + 1] = noise; // G
+            imageData.data[i + 2] = noise; // B
+            imageData.data[i + 3] = 255;   // A
+        }
+        
+        ctx.putImageData(imageData, 0, 0);
+        
+        // PNG로 다운로드
+        canvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'film-grain.png';
+            a.click();
+        });
+    </script>
+</body>
+</html>

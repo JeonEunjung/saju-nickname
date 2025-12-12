@@ -346,3 +346,232 @@ refactor: 리팩토링
 - 한국천문연구원 API: https://www.kasi.re.kr/
 - Vercel 문서: https://vercel.com/docs
 - Express Rate Limit: https://github.com/express-rate-limit/express-rate-limit
+
+---
+
+## 최근 업데이트 (2025-12-11)
+
+### UI/UX 개선
+
+#### 1. 입력 폼 컴팩트화 ([index.html:93-152](index.html#L93-L152), [style.css:161-170](style.css#L161-L170))
+
+**변경 전**: 년/월/일/시/성별이 세로로 긴 레이아웃
+**변경 후**: 그리드 레이아웃으로 2줄로 압축
+
+```html
+<!-- 1행: 년도(2fr), 월(1fr), 일(1fr) -->
+<div class="form-row">
+    <div class="form-group">년도</div>
+    <div class="form-group">월</div>
+    <div class="form-group">일</div>
+</div>
+
+<!-- 2행: 시간(2fr), 성별(1fr) -->
+<div class="form-row">
+    <div class="form-group">시간</div>
+    <div class="form-group">성별</div>
+</div>
+```
+
+**CSS 구현**:
+```css
+.form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr; /* 년도를 더 넓게 */
+    gap: var(--space-3);
+}
+
+.form-row:last-of-type {
+    grid-template-columns: 2fr 1fr; /* 시간, 성별 두 칼럼 */
+}
+
+/* 모바일: 768px 이하에서 세로 스택 */
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+```
+
+**효과**: 약 60% 수직 공간 절약
+
+#### 2. 셀렉트 박스 화살표 개선 ([style.css:189-196](style.css#L189-L196))
+
+**문제**: 기본 브라우저 화살표가 텍스트에 붙어서 표시됨
+**해결**: 커스텀 SVG 화살표 + 오른쪽 패딩 추가
+
+```css
+.form-group select {
+    padding-right: var(--space-10); /* 40px 공간 확보 */
+    appearance: none; /* 기본 화살표 제거 */
+    background-image: url("data:image/svg+xml..."); /* 커스텀 화살표 */
+    background-position: right var(--space-4) center;
+    background-size: 20px;
+}
+```
+
+#### 3. 사주팔자 색상 개별 적용 ([app.js:75-117](app.js#L75-L117))
+
+**변경 전**: 각 기둥(시주, 일주, 월주, 년주)이 단일 색상
+**변경 후**: 천간과 지지 각각의 오행에 맞는 색상 적용
+
+```javascript
+// 각 글자마다 개별 오행 색상 적용
+<span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.hour.stem]].color}">${saju.hour.stem}</span>
+<br>
+<span class="${ELEMENT_PROPERTIES[FIVE_ELEMENTS[saju.hour.branch]].color}">${saju.hour.branch}</span>
+```
+
+**예시**: 시주가 "갑자"일 때
+- 갑(甲) = 목木 → 초록색
+- 자(子) = 수水 → 파란색
+
+### 우주 테마 시스템 구현 ([style.css:88-267](style.css#L88-L267), [app.js:310-341](app.js#L310-L341))
+
+#### 테마 A: 별이 빛나는 밤하늘 (Starry Night)
+
+```css
+body[data-theme="starry"] {
+    background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+}
+
+body[data-theme="starry"]::before {
+    /* 반짝이는 별 패턴 */
+    background-image: radial-gradient(2px 2px at 20px 30px, white, transparent), ...;
+    background-size: 200px 200px;
+    animation: twinkle 3s infinite;
+}
+```
+
+**특징**:
+- 깊은 남색 그라데이션 배경
+- 별 반짝임 애니메이션 (3초 주기)
+- 고요하고 차분한 느낌
+
+#### 테마 B: 은하수 (Milky Way)
+
+```css
+body[data-theme="galaxy"] {
+    background: linear-gradient(135deg,
+        #1a0033 0%,   /* 보라 */
+        #2d1b4e 25%,  /* 진한 보라 */
+        #0f2557 50%,  /* 남색 */
+        #1a4d5c 75%,  /* 청록 */
+        #0d1117 100%  /* 검정 */
+    );
+}
+
+body[data-theme="galaxy"]::before {
+    /* 움직이는 색상 오라 */
+    background: radial-gradient(circle at 20% 50%, rgba(139, 61, 255, 0.3), transparent), ...;
+    animation: galaxyMove 20s ease-in-out infinite;
+}
+
+body[data-theme="galaxy"]::after {
+    /* 떠다니는 빛 입자 */
+    background-image: radial-gradient(...);
+    animation: floatParticles 60s linear infinite;
+}
+```
+
+**특징**:
+- 보라-청록 그라데이션 (우주 성운)
+- 움직이는 색상 오라 (20초 주기)
+- 떠다니는 빛 입자 효과
+- 가장 화려하고 역동적
+
+#### 테마 C: 심플 스타더스트 (Simple Stardust)
+
+```css
+body[data-theme="stardust"] {
+    background: #000000; /* 순수한 검정 */
+}
+
+body[data-theme="stardust"]::before {
+    /* 미세한 별 패턴만 */
+    background-image: radial-gradient(1px 1px at 25% 25%, rgba(255, 255, 255, 0.3), transparent), ...;
+    opacity: 0.4;
+}
+```
+
+**특징**:
+- 순수한 검은색 배경
+- 미세한 별 패턴만 추가
+- 미니멀하고 절제된 디자인
+- 현재 Revolut 테마와 가장 유사
+
+#### 테마 전환 시스템
+
+**HTML 구조** ([index.html:10-15](index.html#L10-L15)):
+```html
+<div class="theme-switcher">
+    <button class="theme-btn active" data-theme="starry">A: 별빛</button>
+    <button class="theme-btn" data-theme="galaxy">B: 은하수</button>
+    <button class="theme-btn" data-theme="stardust">C: 스타더스트</button>
+</div>
+```
+
+**JavaScript 로직** ([app.js:310-341](app.js#L310-L341)):
+```javascript
+// 저장된 테마 불러오기
+const savedTheme = localStorage.getItem('cosmicTheme') || 'starry';
+document.body.setAttribute('data-theme', savedTheme);
+
+// 테마 전환 이벤트
+document.querySelectorAll('.theme-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const theme = this.dataset.theme;
+        document.body.setAttribute('data-theme', theme);
+        localStorage.setItem('cosmicTheme', theme);
+    });
+});
+```
+
+**기능**:
+- 우측 상단 고정 버튼 (모바일 반응형)
+- 로컬 스토리지에 선택 저장 (새로고침 후에도 유지)
+- 부드러운 전환 애니메이션 (0.5s)
+- z-index 관리로 항상 최상단 표시
+
+**사용성**:
+- 데스크톱: 우측 상단 버튼
+- 모바일: 더 작은 크기로 조정 (11px 폰트)
+- 터치 친화적 버튼 크기 (최소 44px)
+
+### 파일 변경 이력
+
+| 파일 | 변경 내용 | 라인 |
+|------|---------|------|
+| [index.html](index.html) | 테마 전환 버튼 추가 | 10-15 |
+| [index.html](index.html) | 입력 폼 그리드 레이아웃 | 93-152 |
+| [style.css](style.css) | 테마 전환 버튼 스타일 | 88-124 |
+| [style.css](style.css) | 우주 테마 3종 구현 | 126-267 |
+| [style.css](style.css) | 입력 폼 그리드 CSS | 161-170 |
+| [style.css](style.css) | 셀렉트 화살표 커스터마이징 | 189-196 |
+| [style.css](style.css) | 모바일 반응형 (테마 버튼) | 500-511 |
+| [app.js](app.js) | 사주팔자 개별 색상 적용 | 75-117 |
+| [app.js](app.js) | 테마 전환 시스템 구현 | 310-363 |
+
+### 디자인 철학
+
+**사주 = 하늘을 읽는 행위**
+- 검은 배경: 밤하늘을 상징
+- 보라색 프라이머리 컬러: 신비롭고 영적인 느낌
+- 별과 성운 효과: 우주와 운명의 연결 표현
+
+**테마별 특징 비교**:
+
+| 테마 | 배경 | 효과 | 분위기 | 추천 사용자 |
+|------|------|------|--------|-----------|
+| A: 별빛 | 남색 그라데이션 | 반짝이는 별 | 차분하고 고요함 | 심플한 디자인 선호 |
+| B: 은하수 | 보라-청록 그라데이션 | 움직이는 오라 + 입자 | 화려하고 역동적 | 화려한 디자인 선호 |
+| C: 스타더스트 | 순수 검정 | 미세한 별만 | 미니멀하고 절제됨 | 기존 디자인 선호 |
+
+### 향후 고려사항
+
+1. **테마 최종 선택**: A/B/C 중 사용자 피드백 기반으로 선택
+2. **추가 테마 가능성**:
+   - D: 낮하늘 테마 (밝은 배경)
+   - E: 석양 테마 (따뜻한 색감)
+3. **애니메이션 성능 최적화**: 저사양 기기 대응
+4. **접근성**: 고대비 모드 지원 고려
