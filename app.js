@@ -32,6 +32,10 @@ document.getElementById('sajuForm').addEventListener('submit', async function(e)
         const elementAnalysis = calculator.findStrongElements(elementCount);
         const characteristics = calculator.analyzeCharacteristics(saju, elementAnalysis);
 
+        // 2026년 운세 계산
+        const fortune2026 = new Fortune2026(saju, elementCount, elementAnalysis);
+        const fortuneResult = fortune2026.analyze();
+
         // 결과 표시 (부캐명은 나중에 타입 선택 시 생성)
         window.currentSajuData = {
             saju,
@@ -39,9 +43,10 @@ document.getElementById('sajuForm').addEventListener('submit', async function(e)
             elementAnalysis,
             characteristics,
             gender,
-            birthInfo: { year, month, day, hour }
+            birthInfo: { year, month, day, hour },
+            fortuneResult
         };
-        displayResults(saju, elementCount, elementAnalysis, characteristics);
+        displayResults(saju, elementCount, elementAnalysis, characteristics, fortuneResult);
 
         // 타입 선택 버튼 이벤트 리스너 추가
         setupNicknameTypeButtons();
@@ -51,7 +56,10 @@ document.getElementById('sajuForm').addEventListener('submit', async function(e)
         document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
     } catch (error) {
         console.error('사주 계산 오류:', error);
-        alert('사주 계산 중 오류가 발생했습니다. 다시 시도해주세요.');
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        alert('사주 계산 중 오류가 발생했습니다. 다시 시도해주세요.\n\n오류 내용: ' + error.message);
     } finally {
         // 버튼 복구
         submitBtn.textContent = originalText;
@@ -207,7 +215,7 @@ function displayNicknames(nicknames) {
 }
 
 // 전체 결과 표시
-function displayResults(saju, elementCount, elementAnalysis, characteristics) {
+function displayResults(saju, elementCount, elementAnalysis, characteristics, fortuneResult) {
     // 사주 표시
     document.getElementById('sajuDisplay').innerHTML =
         displaySaju(saju) + displayElementDistribution(elementCount, elementAnalysis);
@@ -215,6 +223,12 @@ function displayResults(saju, elementCount, elementAnalysis, characteristics) {
     // 특성 표시
     document.getElementById('characteristicsDisplay').innerHTML =
         displayCharacteristics(characteristics);
+
+    // 2026년 운세 표시
+    if (fortuneResult) {
+        document.getElementById('fortune2026Display').innerHTML =
+            displayFortune2026(fortuneResult);
+    }
 
     // 스타일 필터 초기화 및 UI 생성
     initializeStyleFilter();
@@ -258,6 +272,181 @@ function generateAndDisplayNickname(type) {
 
     // 부캐명 표시
     document.getElementById('nicknameDisplay').innerHTML = displayNicknames(nicknames);
+}
+
+// 2026년 운세 표시
+function displayFortune2026(fortuneResult) {
+    let html = '';
+
+    // 연도 정보
+    const yearInfo = fortuneResult.yearInfo;
+    html += `
+        <div class="fortune-year-info">
+            <span class="year-emoji">${yearInfo.emoji}</span>
+            <div class="year-title">${yearInfo.title}</div>
+            <div class="year-description">${yearInfo.description}</div>
+            <div class="year-keywords">
+                ${yearInfo.keywords.map(keyword => `<span class="year-keyword">${keyword}</span>`).join('')}
+            </div>
+        </div>
+    `;
+
+    // 오행 영향
+    if (fortuneResult.elementImpact && fortuneResult.elementImpact.length > 0) {
+        html += '<div class="fortune-element-impacts">';
+        fortuneResult.elementImpact.forEach(impact => {
+            html += `
+                <div class="fortune-impact-item ${impact.type}">
+                    <div class="fortune-impact-header">
+                        <span class="fortune-impact-icon">${impact.icon}</span>
+                        <span class="fortune-impact-title">${impact.title}</span>
+                    </div>
+                    <div class="fortune-impact-description">${impact.description}</div>
+                    <div class="fortune-impact-advice">${impact.advice}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+    }
+
+    // 운세 카테고리 (종합, 사업/학업, 재물, 대인관계, 건강)
+    const fortune = fortuneResult.fortune;
+    html += '<div class="fortune-categories">';
+
+    // 종합 운세
+    html += `
+        <div class="fortune-category">
+            <div class="fortune-category-header">
+                <span class="fortune-category-title">🔮 종합 운세</span>
+                <div class="fortune-score">
+                    <div class="fortune-score-bar">
+                        <div class="fortune-score-fill" style="width: ${fortune.overall.score}%"></div>
+                    </div>
+                    <span class="fortune-score-value">${fortune.overall.score}</span>
+                </div>
+            </div>
+            <div class="fortune-category-description">${fortune.overall.description}</div>
+        </div>
+    `;
+
+    // 사업/학업 운세
+    html += `
+        <div class="fortune-category">
+            <div class="fortune-category-header">
+                <span class="fortune-category-title">💼 사업/학업 운세</span>
+                <div class="fortune-score">
+                    <div class="fortune-score-bar">
+                        <div class="fortune-score-fill" style="width: ${fortune.career.score}%"></div>
+                    </div>
+                    <span class="fortune-score-value">${fortune.career.score}</span>
+                </div>
+            </div>
+            <div class="fortune-category-description">${fortune.career.description}</div>
+            <div class="fortune-category-tips">
+                ${fortune.career.tips.map(tip => `<div class="fortune-tip">${tip}</div>`).join('')}
+            </div>
+        </div>
+    `;
+
+    // 재물 운세
+    html += `
+        <div class="fortune-category">
+            <div class="fortune-category-header">
+                <span class="fortune-category-title">💰 재물 운세</span>
+                <div class="fortune-score">
+                    <div class="fortune-score-bar">
+                        <div class="fortune-score-fill" style="width: ${fortune.wealth.score}%"></div>
+                    </div>
+                    <span class="fortune-score-value">${fortune.wealth.score}</span>
+                </div>
+            </div>
+            <div class="fortune-category-description">${fortune.wealth.description}</div>
+            <div class="fortune-category-tips">
+                ${fortune.wealth.tips.map(tip => `<div class="fortune-tip">${tip}</div>`).join('')}
+            </div>
+        </div>
+    `;
+
+    // 대인관계 운세
+    html += `
+        <div class="fortune-category">
+            <div class="fortune-category-header">
+                <span class="fortune-category-title">🤝 대인관계 운세</span>
+                <div class="fortune-score">
+                    <div class="fortune-score-bar">
+                        <div class="fortune-score-fill" style="width: ${fortune.relationship.score}%"></div>
+                    </div>
+                    <span class="fortune-score-value">${fortune.relationship.score}</span>
+                </div>
+            </div>
+            <div class="fortune-category-description">${fortune.relationship.description}</div>
+            <div class="fortune-category-tips">
+                ${fortune.relationship.tips.map(tip => `<div class="fortune-tip">${tip}</div>`).join('')}
+            </div>
+        </div>
+    `;
+
+    // 건강 운세
+    html += `
+        <div class="fortune-category">
+            <div class="fortune-category-header">
+                <span class="fortune-category-title">🏥 건강 운세</span>
+                <div class="fortune-score">
+                    <div class="fortune-score-bar">
+                        <div class="fortune-score-fill" style="width: ${fortune.health.score}%"></div>
+                    </div>
+                    <span class="fortune-score-value">${fortune.health.score}</span>
+                </div>
+            </div>
+            <div class="fortune-category-description">${fortune.health.description}</div>
+            <div class="fortune-category-tips">
+                ${fortune.health.tips.map(tip => `<div class="fortune-tip">${tip}</div>`).join('')}
+            </div>
+        </div>
+    `;
+
+    html += '</div>';
+
+    // 추천 사항
+    const recommendations = fortuneResult.recommendations;
+    html += `
+        <div class="fortune-recommendations">
+            <div class="fortune-recommendation-box do-list">
+                <div class="fortune-recommendation-title">✅ 이렇게 하세요</div>
+                <div class="fortune-recommendation-list">
+                    ${recommendations.doList.map(item => `<div class="fortune-recommendation-item">${item}</div>`).join('')}
+                </div>
+            </div>
+            <div class="fortune-recommendation-box dont-list">
+                <div class="fortune-recommendation-title">⚠️ 조심하세요</div>
+                <div class="fortune-recommendation-list">
+                    ${recommendations.dontList.map(item => `<div class="fortune-recommendation-item">${item}</div>`).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 월별 운세
+    const monthlyFortune = fortuneResult.monthlyFortune;
+    html += `
+        <div class="fortune-monthly">
+            <div class="fortune-monthly-title">📅 월별 운세</div>
+            <div class="fortune-monthly-grid">
+                ${monthlyFortune.map(month => `
+                    <div class="fortune-month-item">
+                        <div class="fortune-month-header">
+                            <span class="fortune-month-name">${month.month}</span>
+                            <span class="fortune-month-score">${month.score}점</span>
+                        </div>
+                        <div class="fortune-month-season">${month.season} (${month.element})</div>
+                        <div class="fortune-month-fortune">${month.fortune}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    return html;
 }
 
 // 별명 생성 전 안내 메시지 표시
@@ -340,4 +529,4 @@ function fillExample() {
 }
 
 // 개발 중 테스트를 위해 콘솔에 함수 노출
-// fillExample(); // 주석 해제하면 자동으로 예제 데이터 채움
+fillExample(); // 주석 해제하면 자동으로 예제 데이터 채움
