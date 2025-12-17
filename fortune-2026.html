@@ -267,6 +267,15 @@
             box-shadow: var(--shadow-md);
         }
 
+        /* 운세 결과 영역 - 중첩 카드 스타일 제거 */
+        .fortune-2026 {
+            background: transparent !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+        }
+
         /* 운세 결과 타이틀 */
         .fortune-2026 h3 {
             font-size: clamp(24px, 4vw, 32px);
@@ -395,7 +404,6 @@
         <!-- 결과 섹션 -->
         <div class="fortune-result-section" id="fortuneResultSection">
             <div class="fortune-2026">
-                <h3>🎊 2026년 신년 운세</h3>
                 <div id="fortuneResult"></div>
             </div>
 
