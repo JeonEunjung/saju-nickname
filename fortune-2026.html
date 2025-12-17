@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026년 신년 운세 - 사주 기반 부캐명 추천</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Design System Variables - 메인 사이트와 일치 */
+        :root {
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --color-primary: #667eea;
+            --color-secondary: #764ba2;
+            --space-4: 16px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-10: 40px;
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
+            --radius-md: 16px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+
+            /* Revolut Dark Theme Colors - 메인 사이트와 동일 */
+            --revolut-black: #0A0A0A;
+            --revolut-white: #FFFFFF;
+            --revolut-card-bg: rgba(26, 26, 26, 0.8);
+            --revolut-card-hover: rgba(38, 38, 38, 0.9);
+            --revolut-dark-bg: rgba(18, 18, 18, 0.8);
+            --revolut-gray-50: rgba(38, 38, 38, 0.8);
+            --revolut-gray-100: rgba(58, 58, 58, 0.6);
+            --revolut-gray-200: rgba(78, 78, 78, 0.8);
+            --revolut-gray-300: rgba(98, 98, 98, 0.8);
+            --revolut-gray-400: #B0B0B0;
+            --revolut-blue: #0075FF;
+        }
+
+        body {
+            background: var(--revolut-black);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--revolut-white);
+            padding: var(--space-6);
+        }
+
+        .fortune-page-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: var(--space-10) var(--space-6);
+        }
+
+        /* 헤더 섹션 - 메인 히어로 스타일 적용 */
+        .fortune-page-header {
+            text-align: center;
+            margin-bottom: var(--space-10);
+            padding: var(--space-8) 0;
+        }
+
+        .fortune-page-header h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            margin-bottom: var(--space-4);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+        }
+
+        .fortune-page-header p {
+            color: var(--revolut-gray-400);
+            font-size: clamp(16px, 2vw, 18px);
+            line-height: 1.6;
+            margin-top: var(--space-4);
+        }
+
+        /* 백 링크 */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: var(--space-6);
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .back-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(-4px);
+            color: var(--color-secondary);
+        }
+
+        /* 카드 스타일 - Revolut Dark Card */
+        .fortune-input-section,
+        .fortune-result-section {
+            background: var(--revolut-card-bg);
+            border: 1px solid var(--revolut-gray-100);
+            border-radius: var(--radius-xl);
+            padding: var(--space-10);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-6);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .fortune-input-section:hover,
+        .fortune-result-section:hover {
+            background: var(--revolut-card-hover);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--revolut-gray-200);
+        }
+
+        .fortune-result-section {
+            display: none;
+        }
+
+        .fortune-result-section.show {
+            display: block;
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 입력 섹션 타이틀 */
+        .fortune-input-section h2 {
+            font-size: clamp(20px, 3vw, 24px);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: var(--space-8);
+            color: var(--revolut-white);
+        }
+
+        /* 입력 그룹 */
+        .input-group {
+            margin-bottom: var(--space-6);
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--revolut-white);
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--revolut-gray-100);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: var(--revolut-dark-bg);
+            color: var(--revolut-white);
+        }
+
+        .input-group input:hover,
+        .input-group select:hover {
+            border-color: var(--revolut-gray-200);
+            background: var(--revolut-gray-50);
+        }
+
+        .input-group input:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--revolut-blue);
+            border-width: 2px;
+            background: var(--revolut-gray-50);
+            box-shadow: 0 0 0 3px rgba(0, 117, 255, 0.2);
+        }
+
+        /* 성별 선택 버튼 */
+        .gender-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .gender-btn {
+            padding: 14px;
+            border: 1px solid var(--revolut-gray-100);
+            background: var(--revolut-dark-bg);
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--revolut-gray-400);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .gender-btn:hover {
+            border-color: var(--revolut-gray-200);
+            background: var(--revolut-gray-50);
+            color: var(--revolut-white);
+        }
+
+        .gender-btn.active {
+            border-color: var(--revolut-blue);
+            background: var(--revolut-blue);
+            color: var(--revolut-white);
+            box-shadow: 0 0 0 3px rgba(0, 117, 255, 0.2);
+        }
+
+        /* 제출 버튼 - 메인 CTA 스타일 */
+        .submit-fortune-btn {
+            width: 100%;
+            padding: 18px 24px;
+            font-size: 18px;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: var(--space-8);
+            box-shadow: var(--shadow-md), 0 0 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-fortune-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl), 0 0 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .submit-fortune-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* 재시도 버튼 */
+        .retry-fortune-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-top: var(--space-8);
+            font-size: 16px;
+            font-weight: 600;
+            background: transparent;
+            color: var(--revolut-gray-400);
+            border: 1px solid var(--revolut-gray-200);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .retry-fortune-btn:hover {
+            background: var(--revolut-gray-50);
+            color: var(--revolut-white);
+            border-color: var(--revolut-gray-300);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 운세 결과 타이틀 */
+        .fortune-2026 h3 {
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: 800;
+            margin-bottom: var(--space-8);
+            text-align: center;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 768px) {
+            body {
+                padding: var(--space-4);
+            }
+
+            .fortune-page-container {
+                padding: 0;
+            }
+
+            .fortune-input-section,
+            .fortune-result-section {
+                padding: var(--space-6);
+            }
+
+            .fortune-page-header h1 {
+                font-size: 28px;
+            }
+
+            .input-group {
+                margin-bottom: var(--space-4);
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: var(--space-3);
+            }
+
+            .fortune-page-header h1 {
+                font-size: 24px;
+            }
+
+            .submit-fortune-btn {
+                font-size: 16px;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="fortune-page-container">
+        <a href="/" class="back-link">← 부캐명 추천으로 돌아가기</a>
+
+        <div class="fortune-page-header">
+            <h1>🎊 2026년 신년 운세</h1>
+            <p>새해를 맞이하여 나의 2026년 운세를 확인해보세요</p>
+        </div>
+
+        <!-- 입력 섹션 -->
+        <div class="fortune-input-section" id="fortuneInputSection">
+            <h2 style="margin-bottom: 30px; text-align: center;">생년월일시 입력</h2>
+
+            <div class="input-group">
+                <label for="fortuneYear">출생연도 <span style="color: #999; font-size: 0.9rem;">(예: 1990)</span></label>
+                <input type="number" id="fortuneYear" placeholder="1990" min="1900" max="2025">
+            </div>
+
+            <div class="input-group">
+                <label for="fortuneMonth">출생월</label>
+                <select id="fortuneMonth">
+                    <option value="">선택하세요</option>
+                    <option value="1">1월</option>
+                    <option value="2">2월</option>
+                    <option value="3">3월</option>
+                    <option value="4">4월</option>
+                    <option value="5">5월</option>
+                    <option value="6">6월</option>
+                    <option value="7">7월</option>
+                    <option value="8">8월</option>
+                    <option value="9">9월</option>
+                    <option value="10">10월</option>
+                    <option value="11">11월</option>
+                    <option value="12">12월</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="fortuneDay">출생일</label>
+                <input type="number" id="fortuneDay" placeholder="15" min="1" max="31">
+            </div>
+
+            <div class="input-group">
+                <label for="fortuneHour">태어난 시간 <span style="color: #999; font-size: 0.9rem;">(모르면 비워두세요)</span></label>
+                <select id="fortuneHour">
+                    <option value="">모름</option>
+                    <option value="23">자시 (23:00-00:59) 🐭</option>
+                    <option value="1">축시 (01:00-02:59) 🐮</option>
+                    <option value="3">인시 (03:00-04:59) 🐯</option>
+                    <option value="5">묘시 (05:00-06:59) 🐰</option>
+                    <option value="7">진시 (07:00-08:59) 🐲</option>
+                    <option value="9">사시 (09:00-10:59) 🐍</option>
+                    <option value="11">오시 (11:00-12:59) 🐴</option>
+                    <option value="13">미시 (13:00-14:59) 🐑</option>
+                    <option value="15">신시 (15:00-16:59) 🐵</option>
+                    <option value="17">유시 (17:00-18:59) 🐔</option>
+                    <option value="19">술시 (19:00-20:59) 🐶</option>
+                    <option value="21">해시 (21:00-22:59) 🐷</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>성별</label>
+                <div class="gender-selector">
+                    <button type="button" class="gender-btn active" data-gender="male">남성</button>
+                    <button type="button" class="gender-btn" data-gender="female">여성</button>
+                </div>
+            </div>
+
+            <button class="submit-fortune-btn" onclick="analyzeFortune()">2026년 운세 보기</button>
+        </div>
+
+        <!-- 결과 섹션 -->
+        <div class="fortune-result-section" id="fortuneResultSection">
+            <div class="fortune-2026">
+                <h3>🎊 2026년 신년 운세</h3>
+                <div id="fortuneResult"></div>
+            </div>
+
+            <button class="retry-fortune-btn" onclick="resetFortune()">다시 보기</button>
+        </div>
+    </div>
+
+    <script src="saju.js"></script>
+    <script src="saju-api.js"></script>
+    <script src="fortune-2026.js"></script>
+    <script>
+        // 페이지 로드 시 localStorage에서 데이터 확인
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedData = localStorage.getItem('fortuneData');
+
+            if (savedData) {
+                // 메인 페이지에서 온 경우 - 바로 운세 표시
+                try {
+                    const data = JSON.parse(savedData);
+                    displaySavedFortune(data);
+                    localStorage.removeItem('fortuneData'); // 사용 후 삭제
+                } catch (error) {
+                    console.error('데이터 로드 오류:', error);
+                }
+            }
+        });
+
+        // 저장된 운세 데이터 표시
+        function displaySavedFortune(data) {
+            // 입력 섹션 숨기고 결과 섹션 표시
+            document.getElementById('fortuneInputSection').style.display = 'none';
+            document.getElementById('fortuneResultSection').classList.add('show');
+
+            // 운세 결과 표시
+            const fortuneHTML = generateFortuneHTML(data.fortuneResult);
+            document.getElementById('fortuneResult').innerHTML = fortuneHTML;
+        }
+
+        // app.js의 displayFortune2026 함수와 동일
+        function generateFortuneHTML(fortuneResult) {
+            let html = '';
+
+            // 연도 정보
+            const yearInfo = fortuneResult.yearInfo;
+            html += `
+                <div class="fortune-year-info">
+                    <span class="year-emoji">${yearInfo.emoji}</span>
+                    <div class="year-title">${yearInfo.title}</div>
+                    <div class="year-description">${yearInfo.description}</div>
+                    <div class="year-keywords">
+                        ${yearInfo.keywords.map(keyword => `<span class="year-keyword">${keyword}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 오행 영향
+            if (fortuneResult.elementImpact && fortuneResult.elementImpact.length > 0) {
+                html += '<div class="fortune-element-impacts">';
+                fortuneResult.elementImpact.forEach(impact => {
+                    html += `
+                        <div class="fortune-impact-item ${impact.type}">
+                            <div class="fortune-impact-header">
+                                <span class="fortune-impact-icon">${impact.icon}</span>
+                                <span class="fortune-impact-title">${impact.title}</span>
+                            </div>
+                            <div class="fortune-impact-description">${impact.description}</div>
+                            <div class="fortune-impact-advice">${impact.advice}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            // 운세 카테고리
+            const fortune = fortuneResult.fortune;
+            html += '<div class="fortune-categories">';
+
+            // 종합 운세
+            html += `
+                <div class="fortune-category">
+                    <div class="fortune-category-header">
+                        <span class="fortune-category-title">🔮 종합 운세</span>
+                        <div class="fortune-score">
+                            <div class="fortune-score-bar">
+                                <div class="fortune-score-fill" style="width: ${fortune.overall.score}%"></div>
+                            </div>
+                            <span class="fortune-score-value">${fortune.overall.score}</span>
+                        </div>
+                    </div>
+                    <div class="fortune-category-description">${fortune.overall.description}</div>
+                </div>
+            `;
+
+            // 사업/학업 운세
+            html += `
+                <div class="fortune-category">
+                    <div class="fortune-category-header">
+                        <span class="fortune-category-title">💼 사업/학업 운세</span>
+                        <div class="fortune-score">
+                            <div class="fortune-score-bar">
+                                <div class="fortune-score-fill" style="width: ${fortune.career.score}%"></div>
+                            </div>
+                            <span class="fortune-score-value">${fortune.career.score}</span>
+                        </div>
+                    </div>
+                    <div class="fortune-category-description">${fortune.career.description}</div>
+                    <div class="fortune-category-tips">
+                        ${fortune.career.tips.map(tip => `<div class="fortune-tip">${tip}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 재물 운세
+            html += `
+                <div class="fortune-category">
+                    <div class="fortune-category-header">
+                        <span class="fortune-category-title">💰 재물 운세</span>
+                        <div class="fortune-score">
+                            <div class="fortune-score-bar">
+                                <div class="fortune-score-fill" style="width: ${fortune.wealth.score}%"></div>
+                            </div>
+                            <span class="fortune-score-value">${fortune.wealth.score}</span>
+                        </div>
+                    </div>
+                    <div class="fortune-category-description">${fortune.wealth.description}</div>
+                    <div class="fortune-category-tips">
+                        ${fortune.wealth.tips.map(tip => `<div class="fortune-tip">${tip}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 대인관계 운세
+            html += `
+                <div class="fortune-category">
+                    <div class="fortune-category-header">
+                        <span class="fortune-category-title">🤝 대인관계 운세</span>
+                        <div class="fortune-score">
+                            <div class="fortune-score-bar">
+                                <div class="fortune-score-fill" style="width: ${fortune.relationship.score}%"></div>
+                            </div>
+                            <span class="fortune-score-value">${fortune.relationship.score}</span>
+                        </div>
+                    </div>
+                    <div class="fortune-category-description">${fortune.relationship.description}</div>
+                    <div class="fortune-category-tips">
+                        ${fortune.relationship.tips.map(tip => `<div class="fortune-tip">${tip}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 건강 운세
+            html += `
+                <div class="fortune-category">
+                    <div class="fortune-category-header">
+                        <span class="fortune-category-title">🏥 건강 운세</span>
+                        <div class="fortune-score">
+                            <div class="fortune-score-bar">
+                                <div class="fortune-score-fill" style="width: ${fortune.health.score}%"></div>
+                            </div>
+                            <span class="fortune-score-value">${fortune.health.score}</span>
+                        </div>
+                    </div>
+                    <div class="fortune-category-description">${fortune.health.description}</div>
+                    <div class="fortune-category-tips">
+                        ${fortune.health.tips.map(tip => `<div class="fortune-tip">${tip}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+
+            html += '</div>';
+
+            // 추천 사항
+            const recommendations = fortuneResult.recommendations;
+            html += `
+                <div class="fortune-recommendations">
+                    <div class="fortune-recommendation-box do-list">
+                        <div class="fortune-recommendation-title">✅ 이렇게 하세요</div>
+                        <div class="fortune-recommendation-list">
+                            ${recommendations.doList.map(item => `<div class="fortune-recommendation-item">${item}</div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="fortune-recommendation-box dont-list">
+                        <div class="fortune-recommendation-title">⚠️ 조심하세요</div>
+                        <div class="fortune-recommendation-list">
+                            ${recommendations.dontList.map(item => `<div class="fortune-recommendation-item">${item}</div>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 월별 운세
+            const monthlyFortune = fortuneResult.monthlyFortune;
+            html += `
+                <div class="fortune-monthly">
+                    <div class="fortune-monthly-title">📅 월별 운세</div>
+                    <div class="fortune-monthly-grid">
+                        ${monthlyFortune.map(month => `
+                            <div class="fortune-month-item">
+                                <div class="fortune-month-header">
+                                    <span class="fortune-month-name">${month.month}</span>
+                                    <span class="fortune-month-score">${month.score}점</span>
+                                </div>
+                                <div class="fortune-month-season">${month.season} (${month.element})</div>
+                                <div class="fortune-month-fortune">${month.fortune}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            return html;
+        }
+
+        // 성별 선택 버튼
+        document.querySelectorAll('.gender-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        let currentSajuData = null;
+
+        async function analyzeFortune() {
+            const year = document.getElementById('fortuneYear').value;
+            const month = document.getElementById('fortuneMonth').value;
+            const day = document.getElementById('fortuneDay').value;
+            const hour = document.getElementById('fortuneHour').value || null;
+            const gender = document.querySelector('.gender-btn.active').dataset.gender;
+
+            if (!year || !month || !day) {
+                alert('출생연도, 월, 일을 모두 입력해주세요.');
+                return;
+            }
+
+            try {
+                // 사주 데이터 가져오기
+                const sajuAPI = new SajuCalculatorAPI();
+                const birthData = {
+                    year: parseInt(year),
+                    month: parseInt(month),
+                    day: parseInt(day),
+                    hour: hour ? parseInt(hour) : null,
+                    isLeapMonth: false,
+                    gender: gender
+                };
+
+                currentSajuData = await sajuAPI.calculateSaju(birthData);
+
+                // 2026년 운세 생성
+                const fortune = generateFortune2026(currentSajuData, birthData);
+
+                // 결과 표시
+                document.getElementById('fortuneResult').innerHTML = fortune;
+                document.getElementById('fortuneInputSection').style.display = 'none';
+                document.getElementById('fortuneResultSection').classList.add('show');
+
+            } catch (error) {
+                console.error('운세 분석 오류:', error);
+                alert('운세 분석 중 오류가 발생했습니다. 다시 시도해주세요.');
+            }
+        }
+
+        function resetFortune() {
+            document.getElementById('fortuneInputSection').style.display = 'block';
+            document.getElementById('fortuneResultSection').classList.remove('show');
+            currentSajuData = null;
+        }
+    </script>
+</body>
+</html>

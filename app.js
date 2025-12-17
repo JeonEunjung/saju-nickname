@@ -224,11 +224,8 @@ function displayResults(saju, elementCount, elementAnalysis, characteristics, fo
     document.getElementById('characteristicsDisplay').innerHTML =
         displayCharacteristics(characteristics);
 
-    // 2026년 운세 표시
-    if (fortuneResult) {
-        document.getElementById('fortune2026Display').innerHTML =
-            displayFortune2026(fortuneResult);
-    }
+    // 2026년 운세는 별도 페이지로 이동 (fortune-2026.html)
+    // 메인 페이지에서는 표시하지 않음
 
     // 스타일 필터 초기화 및 UI 생성
     initializeStyleFilter();
@@ -530,3 +527,23 @@ function fillExample() {
 
 // 개발 중 테스트를 위해 콘솔에 함수 노출
 // fillExample(); // 주석 해제하면 자동으로 예제 데이터 채움
+
+// 2026년 운세 페이지로 이동
+function openFortunePage() {
+    if (!window.currentSajuData) {
+        alert('먼저 사주 분석을 완료해주세요.');
+        return;
+    }
+
+    // localStorage에 데이터 저장
+    localStorage.setItem('fortuneData', JSON.stringify({
+        saju: window.currentSajuData.saju,
+        elementCount: window.currentSajuData.elementCount,
+        elementAnalysis: window.currentSajuData.elementAnalysis,
+        birthInfo: window.currentSajuData.birthInfo,
+        fortuneResult: window.currentSajuData.fortuneResult
+    }));
+
+    // 새 탭에서 운세 페이지 열기
+    window.open('fortune-2026.html', '_blank');
+}
