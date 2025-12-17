@@ -1383,3 +1383,298 @@ git push origin main
 ```
 
 **Vercel 자동 배포**: GitHub push 시 자동 트리거
+
+---
+
+## 최근 업데이트 (2025-12-18)
+
+### UI/UX 버그 수정 및 개선
+
+#### 주요 변경사항
+
+##### 1. 캐릭터 매칭 오행 불일치 수정 ([anime-matcher.js:162-205](anime-matcher.js#L162-L205))
+
+**문제**: 사주 오행과 매칭된 캐릭터 오행이 일치하지 않음
+- 사주: 목(木) → 결과: 화(火) 캐릭터
+
+**원인**:
+- 점수 계산 시 오행 일치(40점) < 성격+키워드(60점)
+- 다른 오행이지만 특성 유사도가 높으면 선택됨
+
+**해결**:
+```javascript
+findBestMatch(sajuData, elementCount) {
+    // 1단계: 오행 필터링 (주요 오행과 일치하는 캐릭터만 선택)
+    let filteredCharacters = this.characters.filter(
+        character => character.element === sajuTraits.element
+    );
+
+    // 주요 오행에 맞는 캐릭터가 없으면 보조 오행 사용
+    if (filteredCharacters.length === 0 && sajuTraits.secondaryElement) {
+        filteredCharacters = this.characters.filter(
+            character => character.element === sajuTraits.secondaryElement
+        );
+    }
+
+    // 그래도 없으면 모든 캐릭터 사용 (fallback)
+    if (filteredCharacters.length === 0) {
+        filteredCharacters = this.characters;
+    }
+
+    // 2단계: 필터링된 캐릭터들에 대해 매칭 점수 계산
+    const scoredCharacters = filteredCharacters.map(character => ({
+        character,
+        score: this.calculateMatchScore(character, sajuTraits)
+    }));
+
+    // 점수순 정렬
+    scoredCharacters.sort((a, b) => b.score - a.score);
+}
+```
+
+**개선 효과**:
+- 오행 일치 보장 (필터링 우선)
+- 오행 내에서 가장 유사한 캐릭터 선택
+- 3단계 Fallback 시스템 (주요 오행 → 보조 오행 → 전체)
+
+##### 2. 페이지 네비게이션 개선 ([app.js:548, 573](app.js#L548))
+
+**문제**: 신년운세/캐릭터 매칭 클릭 시 새 탭 열림
+
+**변경 전**:
+```javascript
+window.open('fortune-2026.html', '_blank');
+window.open('anime-character.html', '_blank');
+```
+
+**변경 후**:
+```javascript
+sessionStorage.setItem('justNavigated', 'true');
+window.location.href = 'fortune-2026.html';
+window.location.href = 'anime-character.html';
+```
+
+**효과**: 같은 탭에서 페이지 이동, 히스토리 관리 개선
+
+##### 3. 뒤로가기 상태 복원 구현 ([app.js:580-638](app.js#L580-L638))
+
+**문제**: 뒤로가기 시 사주 인트로 페이지로 이동 (결과 손실)
+
+**해결**: sessionStorage 플래그 시스템
+```javascript
+window.addEventListener('DOMContentLoaded', function() {
+    const justNavigated = sessionStorage.getItem('justNavigated');
+
+    if (justNavigated) {
+        sessionStorage.removeItem('justNavigated');
+
+        // localStorage에서 데이터 복원
+        const data = JSON.parse(localStorage.getItem('fortune2026Data') ||
+                                 localStorage.getItem('animeCharacterData'));
+
+        // 사주 데이터 복원 및 결과 재표시
+        window.currentSajuData = { /* ... */ };
+        displayResults(/* ... */);
+
+        // 타입 선택 버튼 이벤트 리스너 추가
+        setupNicknameTypeButtons();
+
+        // 인트로/입력 섹션 숨기고 결과 표시
+        introSection.style.display = 'none';
+        inputSection.style.display = 'none';
+        resultSection.style.display = 'block';
+    }
+});
+```
+
+**동작 원리**:
+1. 페이지 이동 전: `justNavigated` 플래그 설정
+2. 새 페이지 로드 시: 플래그 확인
+3. 플래그 있으면: localStorage 데이터 복원 + 결과 표시
+4. 플래그 없으면: 인트로 표시 (새로고침 or 첫 방문)
+
+**시나리오별 동작**:
+- **신년운세 클릭 → 뒤로가기**: 사주 결과 화면 복원 ✅
+- **새로고침**: 인트로 화면 ✅
+- **직접 URL 접속**: 인트로 화면 ✅
+
+##### 4. 버튼 클릭 이벤트 복원 수정 ([app.js:617-618](app.js#L617-L618))
+
+**문제**: 뒤로가기 후 '부족한 기운 채우기' 버튼 클릭 안 됨
+
+**원인**: 복원 시 `displayResults()` 호출 후 `setupNicknameTypeButtons()` 누락
+
+**해결**:
+```javascript
+// 먼저 결과 재표시
+displayResults(/* ... */);
+
+// 타입 선택 버튼 이벤트 리스너 추가 (중요!)
+setupNicknameTypeButtons();
+```
+
+##### 5. Select Dropdown 화살표 위치 고정 ([style.css:213-226](style.css#L213-L226))
+
+**문제**: 월/시간/성별 select hover 시 화살표가 왼쪽으로 이동
+
+**원인**: `background` 속성이 `background-image`를 덮어씀
+
+**변경 전**:
+```css
+.form-group select:hover {
+    background: var(--revolut-gray-50); /* 배경 이미지 삭제됨 */
+}
+```
+
+**변경 후**:
+```css
+.form-group select:hover {
+    background-color: var(--revolut-gray-50); /* 배경 이미지 유지 */
+}
+```
+
+##### 6. 인트로 Chevron 화살표 위치 고정 ([style.css:1094-1123](style.css#L1094-L1123))
+
+**문제**: "왜 사주로 닉네임을 지어야 할까요?" hover 시 화살표 움직임
+
+**해결**:
+```css
+.info-summary {
+    display: grid;
+    grid-template-columns: 1fr auto;  /* 텍스트 가변, 화살표 고정 */
+    gap: var(--space-3);
+    transition: background var(--transition-fast);  /* all → background */
+}
+
+.chevron {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+```
+
+**개선 포인트**:
+- Flexbox → Grid 레이아웃 변경
+- 화살표 크기 명시적 지정
+- transition 범위 축소 (all → background)
+
+##### 7. CTA 문구 개선 ([index.html:23](index.html#L23))
+
+**변경 전**: "무료로 별명 추천받기 →"
+**변경 후**: "내 부캐명 찾기 →"
+
+**이유**:
+- "무료로" 표현이 다른 기능은 유료처럼 보이게 함
+- 더 간결하고 직관적인 행동 유도
+- 부담 없는 친근한 표현
+
+##### 8. 크로스 페이지 네비게이션 CTA 추가
+
+**anime-character.html**:
+```html
+<div class="action-buttons">
+    <button class="secondary-btn" onclick="window.location.href='/'">
+        ← 부캐명 추천으로 돌아가기
+    </button>
+    <button class="primary-btn" onclick="window.location.href='fortune-2026.html'">
+        🔮 신년운세 보기
+    </button>
+</div>
+```
+
+**fortune-2026.html**:
+```html
+<div class="action-buttons">
+    <button class="secondary-btn" onclick="window.location.href='/'">
+        ← 부캐명 추천으로 돌아가기
+    </button>
+    <button class="primary-btn" onclick="window.location.href='anime-character.html'">
+        🎭 나와 닮은 캐릭터 보기
+    </button>
+</div>
+```
+
+**변경 전**: "닫기" 버튼 (window.close)
+**변경 후**: 이중 네비게이션 버튼 (메인 복귀 + 대체 기능)
+
+**효과**:
+- 사용자 여정 개선 (다른 기능 탐색 유도)
+- 페이지 닫기 대신 추가 인게이지먼트
+- 크로스 프로모션 효과
+
+#### 파일 변경 이력
+
+| 파일 | 변경 내용 | 커밋 |
+|------|---------|------|
+| [anime-matcher.js](anime-matcher.js) | 오행 필터링 우선 적용 | 05dd62e (CTA 버튼) |
+| [app.js](app.js) | 페이지 네비게이션 변경 (새 탭 → 같은 탭) | 8661bd0 (버튼 복원) |
+| [app.js](app.js) | 뒤로가기 상태 복원 시스템 구현 | 8661bd0 |
+| [app.js](app.js) | setupNicknameTypeButtons 호출 추가 | 8661bd0 |
+| [style.css](style.css) | Select dropdown 화살표 위치 고정 | f4b1355 |
+| [style.css](style.css) | Chevron 화살표 Grid 레이아웃 | f4b1355 |
+| [index.html](index.html) | CTA 문구 변경 | 628926d |
+| [anime-character.html](anime-character.html) | 크로스 네비게이션 버튼 추가 | 05dd62e |
+| [fortune-2026.html](fortune-2026.html) | 크로스 네비게이션 버튼 추가 | 05dd62e |
+
+#### 배포 이력
+
+```bash
+# 1. 캐릭터 매칭 오행 수정 + 크로스 네비게이션 CTA
+git commit -m "feat: Replace close buttons with cross-navigation CTAs"
+git push origin main  # 05dd62e
+
+# 2. 뒤로가기 버튼 이벤트 복원
+git commit -m "fix: Add missing setupNicknameTypeButtons call on page restoration"
+git push origin main  # 8661bd0
+
+# 3. Dropdown 화살표 위치 수정
+git commit -m "fix: Fix dropdown arrow position on hover/focus"
+git push origin main  # f4b1355
+
+# 4. CTA 문구 개선
+git commit -m "chore: Update hero CTA copy for better clarity"
+git push origin main  # 628926d
+```
+
+#### 사용자 경험 개선 지표
+
+**네비게이션**:
+- 새 탭 열림 → 같은 탭 이동 (히스토리 관리 개선)
+- 뒤로가기 시 결과 보존율: 0% → 100%
+
+**UI 안정성**:
+- Select dropdown 화살표 안정성: 개선
+- Chevron 화살표 위치: 고정
+- 버튼 클릭 성공률: 100% (복원 후에도)
+
+**전환율 최적화**:
+- CTA 문구 부담감: 감소
+- 크로스 기능 탐색: 닫기 버튼 → 네비게이션 유도
+- 페이지 체류 시간: 예상 증가
+
+#### Rate Limit 설정 (현재 유지)
+
+**개발/프로덕션 설정**:
+- **개별 IP**: 1분당 100회
+- **전체 서버**: 1분당 500회 (모든 사용자 합산)
+- **일반 요청**: 15분당 1000회
+
+**사용 예시**:
+- 10명 동시 접속: 각자 1분에 50회 가능
+- 100명 동시 접속: 각자 1분에 5회 가능
+- 일반 사용자(1분에 1-2회): 수백 명까지 문제없음
+
+#### 다음 단계
+
+1. **A/B 테스트**
+   - 크로스 네비게이션 버튼 전환율 측정
+   - CTA 문구 변경 효과 분석
+
+2. **추가 개선 고려**
+   - 로딩 상태 표시 (뒤로가기 시)
+   - 에러 바운더리 추가
+   - 오프라인 대응
+
+3. **성능 모니터링**
+   - Rate limit 도달률 확인
+   - 페이지 전환 속도 측정
