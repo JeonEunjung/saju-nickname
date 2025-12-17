@@ -614,6 +614,9 @@ window.addEventListener('DOMContentLoaded', function() {
                         window.currentSajuData.fortuneResult
                     );
 
+                    // 타입 선택 버튼 이벤트 리스너 추가 (중요!)
+                    setupNicknameTypeButtons();
+
                     // 그 다음 결과 영역 표시 (폼 숨기고 결과 보이기)
                     // 약간의 지연을 주어 displayResults가 DOM을 업데이트한 후 실행
                     setTimeout(() => {
