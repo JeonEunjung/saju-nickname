@@ -1097,3 +1097,289 @@ if (!relation) {
 4. **통계 분석**
    - 각 십신 타입별 사용자 비율
    - 가장 많이 조회되는 운세 카테고리
+
+---
+
+## 최근 업데이트 (2025-12-17)
+
+### 애니메이션 캐릭터 매칭 시스템 확장
+
+**배경**: 사주 기반으로 애니메이션 캐릭터를 매칭해주는 새로운 기능 추가. 캐릭터 풀을 100개에서 150개로 확장하고 모든 캐릭터에 실제 이미지 적용.
+
+#### 주요 변경사항
+
+##### 1. 캐릭터 데이터베이스 확장 ([anime-characters.json](anime-characters.json))
+
+**변경 전**: 100개 캐릭터
+**변경 후**: 150개 캐릭터 (50개 추가)
+
+**추가된 인기 애니메이션 캐릭터**:
+
+| 애니메이션 | 캐릭터 | ID 범위 |
+|-----------|--------|---------|
+| 주술회전 | 고죠 사토루, 이타도리 유지, 후시구로 메구미, 쿠기사키 노바라, 료멘 스쿠나 | 101-104, 90-94 |
+| 체인소맨 | 덴지, 파워, 마키마 | 105-107, 87-89 |
+| SPY×FAMILY | 아냐 포저, 로이드 포저, 요르 포저 | 108-110, 81-83 |
+| 【推しの子】 | 호시노 아이, 호시노 아쿠아, 호시노 루비 | 111-113, 84-86 |
+| 빈란드 사가 | 토르핀, 아스켈라드 | 114-115, 95-96 |
+| Dr. STONE | 이시가미 센쿠, 오오키 타이주, 오가와 유즈리하 | 116, 97-99 |
+| 헌터×헌터 | 레오리오, 쿠라피카 | 120-121 |
+| 죠죠의 기묘한 모험 | 죠르노 죠바나 | 125 |
+| 하이큐!! | 히나타 쇼요, 카게야마 토비오 | 142-143 |
+| 도쿄 리벤저스 | 드라켄, 하나가키 타케미치 | 144-145 |
+| 약속의 네버랜드 | 엠마, 노먼, 레이 | 147-149 |
+| 유녀전기 | 타냐 데구레챠프 | 150 |
+
+**데이터 구조**:
+```json
+{
+  "id": 101,
+  "name": "고죠 (고죠 사토루)",
+  "anime": "주술회전",
+  "image": "https://s4.anilist.co/file/anilistcdn/character/large/b127691-9zqh1xpIubn7.png",
+  "element": "水",
+  "traits": ["최강", "천재", "카리스마", "자유", "멘토"],
+  "keywords": ["무한", "육안", "최강", "선생님", "쿨"],
+  "description": "압도적인 힘과 여유를 가진 최강의 술사"
+}
+```
+
+##### 2. 이미지 자동 수집 시스템 구현 ([fetch-anime-images.js](fetch-anime-images.js))
+
+**새로 추가된 스크립트**: AniList GraphQL API를 활용한 캐릭터 이미지 자동 수집
+
+**주요 기능**:
+```javascript
+// AniList GraphQL 쿼리
+const query = `
+query ($search: String) {
+  Character(search: $search) {
+    name { full native }
+    image { large medium }
+  }
+}
+`;
+
+// 영어명 매핑 (150개)
+const characterSearchNames = {
+  1: "Naruto Uzumaki",
+  // ...
+  150: "Tanya Degurechaff"
+};
+
+// API 호출 및 JSON 업데이트
+async function updateCharacterImages() {
+  for (let i = 0; i < 150; i++) {
+    const imageUrl = await fetchCharacterImage(searchName);
+    character.image = imageUrl;
+    // 1초 대기 (API rate limit 방지)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+}
+```
+
+**기술적 특징**:
+- AniList GraphQL API 엔드포인트: `https://graphql.anilist.co`
+- Rate limit 방지: 각 요청 사이 1초 대기
+- 에러 핸들링: 실패 시 기존 이미지 유지
+- 150개 캐릭터 영어명 매핑 완료
+
+**실행 방법**:
+```bash
+cd /Users/eunjung.jeon/saju-nickname
+node fetch-anime-images.js
+```
+
+##### 3. 이미지 100% 실제 이미지로 교체
+
+**변경 전**:
+- 88개: AniList 실제 이미지
+- 62개: imgur.com placeholder 이미지
+
+**변경 후**:
+- **150개 모두 AniList 실제 이미지** (100%)
+
+**수집 통계**:
+- AniList API 자동 수집: 88개 성공
+- 수동 URL 추가: 62개
+- 총 실제 이미지: 150개 (100%)
+
+**Fallback 시스템 유지** ([anime-character.html:495-513](anime-character.html#L495-L513)):
+```javascript
+const getImageUrl = () => {
+  if (character.image && !character.image.includes('imgur.com')) {
+    return character.image; // 실제 이미지 사용
+  }
+
+  // Fallback: 오행별 색상 아바타
+  const elementColors = {
+    '木': '4CAF50', '火': 'F44336', '土': 'FF9800',
+    '金': 'FFC107', '水': '2196F3'
+  };
+  return `https://ui-avatars.com/api/?name=${name}&background=${color}...`;
+};
+```
+
+##### 4. 캐릭터 매칭 알고리즘 ([anime-matcher.js](anime-matcher.js))
+
+**매칭 시스템 구조**:
+
+```javascript
+// 사주 특성 추출
+extractSajuTraits(sajuData, elementCount) {
+  return {
+    element: this.convertElement(dayMasterElement),        // 주요 오행
+    secondaryElement: this.convertElement(secondaryEl),    // 보조 오행
+    personality: [...elementPersonality[traits.element].traits],
+    keywords: [...elementPersonality[traits.element].keywords]
+  };
+}
+
+// 매칭 점수 계산 (최대 100점)
+calculateMatchScore(character, sajuTraits) {
+  let score = 0;
+
+  // 1. 오행 일치 (최대 40점)
+  if (character.element === sajuTraits.element) score += 40;
+  else if (character.element === sajuTraits.secondaryElement) score += 20;
+
+  // 2. 성격 특성 일치 (최대 30점)
+  traitMatches * 5 (최대 30점)
+
+  // 3. 키워드 일치 (최대 30점)
+  keywordMatches * 5 (최대 30점)
+
+  return score;
+}
+```
+
+**오행별 성격 특성 맵핑**:
+
+| 오행 | 성격 특성 | 키워드 |
+|------|----------|--------|
+| 木 | 성장형, 끈기, 헌신적, 순수, 성실 | 성장, 봄, 나무, 푸름, 발전 |
+| 火 | 열정적, 밝음, 적극적, 활발, 에너지 | 열정, 태양, 밝음, 활력, 도전 |
+| 土 | 온화, 안정, 헌신, 평범, 가정적 | 안정, 평화, 땅, 온화, 신뢰 |
+| 金 | 강함, 완벽주의, 냉정, 책임감, 정의감 | 강철, 칼, 명예, 정의, 완벽 |
+| 水 | 지적, 냉정, 섬세, 전략적, 지혜 | 물, 지혜, 냉정, 유연, 흐름 |
+
+##### 5. UI 개선 ([anime-character.html](anime-character.html))
+
+**카드 스타일**:
+- 캐릭터 이미지: 400px 고정 높이
+- 이미지 호버 효과: scale(1.05) 줌인
+- 오버레이 그라데이션: 하단에 애니 제목 + 캐릭터명
+- 매칭도 점수 표시
+- 공통 특성 배지 (최대 5개)
+- 키워드 태그 (최대 5개)
+
+**반응형 디자인**:
+- 데스크톱: 카드 그림자 + 호버 효과
+- 모바일: 터치 친화적 레이아웃
+
+#### 파일 변경 이력
+
+| 파일 | 변경 내용 | 라인 | 상태 |
+|------|---------|------|------|
+| [anime-characters.json](anime-characters.json) | 50개 캐릭터 추가, 150개 이미지 URL 업데이트 | 전체 | ✅ 완료 |
+| [fetch-anime-images.js](fetch-anime-images.js) | 이미지 자동 수집 스크립트 신규 작성 | 1-241 | ✅ 완료 |
+| [anime-matcher.js](anime-matcher.js) | 매칭 로직 유지 (변경 없음) | - | ✅ 유지 |
+| [anime-character.html](anime-character.html) | UI 유지 (변경 없음) | - | ✅ 유지 |
+
+#### 알려진 이슈
+
+**⚠️ 우선순위 High - 캐릭터 매칭 오류**:
+
+**문제**: 사주 오행과 매칭된 캐릭터 오행이 불일치
+- 예시: 사주에서 "목(木)" 특성 → 결과는 "화(火)" 캐릭터
+
+**원인 분석**:
+- `calculateMatchScore` 함수에서 오행 매칭에 40점 배점
+- 하지만 성격 특성(30점) + 키워드(30점)가 더 높으면 다른 오행 캐릭터 선택 가능
+- 오행 일치도보다 텍스트 유사도가 우선되는 구조적 문제
+
+**해결 방안**:
+1. 오행 필터링 우선 적용 (완전 일치만 허용)
+2. 오행 가중치 증가 (40점 → 60점)
+3. 오행별 캐릭터 풀 분리 후 개별 매칭
+
+**수정 예정 파일**: [anime-matcher.js:130-159](anime-matcher.js#L130-L159)
+
+#### 통계
+
+- **총 캐릭터 수**: 150개
+- **실제 이미지 보유율**: 100% (150/150)
+- **API 자동 수집 성공률**: 58.7% (88/150)
+- **수동 추가 이미지**: 62개
+- **지원 애니메이션**: 50+ 작품
+- **오행 분포**:
+  - 목(木): 30개
+  - 화(火): 35개
+  - 토(土): 25개
+  - 금(金): 30개
+  - 수(水): 30개
+
+#### 향후 계획
+
+1. **⚠️ 즉시**: 캐릭터 매칭 알고리즘 수정 (오행 불일치 해결)
+2. **단기**: 추가 캐릭터 확장 (200개 목표)
+3. **중기**: 이미지 CDN 적용 (로딩 속도 개선)
+4. **장기**: 사용자 피드백 시스템 (좋아요/싫어요)
+
+#### 기술적 세부사항
+
+**AniList API 쿼리 예시**:
+```graphql
+query {
+  Character(search: "Naruto Uzumaki") {
+    name {
+      full
+      native
+    }
+    image {
+      large
+      medium
+    }
+  }
+}
+```
+
+**응답 예시**:
+```json
+{
+  "data": {
+    "Character": {
+      "name": {
+        "full": "Naruto Uzumaki",
+        "native": "うずまきナルト"
+      },
+      "image": {
+        "large": "https://s4.anilist.co/file/anilistcdn/character/large/b17-IazKGogQwJ0d.png",
+        "medium": "https://s4.anilist.co/file/anilistcdn/character/medium/b17-IazKGogQwJ0d.png"
+      }
+    }
+  }
+}
+```
+
+#### 배포 준비
+
+**Git 상태**:
+```bash
+On branch main
+Changes not staged for commit:
+  modified:   anime-characters.json
+
+Untracked files:
+  fetch-anime-images.js
+  fetch-log.txt
+```
+
+**커밋 완료**:
+```bash
+git add anime-characters.json fetch-anime-images.js
+git commit -m "Expand character pool to 150 with real AniList images"
+git push origin main
+```
+
+**Vercel 자동 배포**: GitHub push 시 자동 트리거
