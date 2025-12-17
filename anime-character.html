@@ -169,11 +169,12 @@
             background: var(--revolut-card-bg);
             border: 1px solid var(--revolut-gray-100);
             border-radius: var(--radius-xl);
-            padding: var(--space-10);
+            padding: 0;
             box-shadow: var(--shadow-md);
             margin-bottom: var(--space-8);
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
+            overflow: hidden;
         }
 
         .anime-character-card:hover {
@@ -181,6 +182,53 @@
             border-color: var(--revolut-gray-200);
             box-shadow: var(--shadow-lg);
             transform: translateY(-4px);
+        }
+
+        /* 캐릭터 이미지 */
+        .anime-character-image-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .anime-character-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .anime-character-card:hover .anime-character-image {
+            transform: scale(1.05);
+        }
+
+        /* 이미지 오버레이 */
+        .image-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: var(--space-6);
+            color: white;
+        }
+
+        .overlay-anime-name {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .overlay-character-name {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* 카드 컨텐츠 */
+        .anime-character-content {
+            padding: var(--space-10);
         }
 
         .anime-character-header {
@@ -490,45 +538,82 @@
             const character = matchResult.bestMatch;
             const matchReason = animeCharacterMatcher.generateMatchReason(character, matchResult.sajuTraits);
 
+            // 캐릭터 이미지 URL 생성
+            // 실제 이미지가 있으면 사용, 없으면 그라디언트 배경 + 이름 표시
+            const getImageUrl = () => {
+                if (character.image && !character.image.includes('imgur.com')) {
+                    return character.image;
+                }
+
+                // 오행별 색상
+                const elementColors = {
+                    '木': '4CAF50',
+                    '火': 'F44336',
+                    '土': 'FF9800',
+                    '金': 'FFC107',
+                    '水': '2196F3'
+                };
+
+                const bgColor = elementColors[character.element] || '667eea';
+                const name = character.name.split('(')[0].trim();
+
+                return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=600&background=${bgColor}&color=fff&font-size=0.4&bold=true`;
+            };
+
+            const imageUrl = getImageUrl();
+
             const html = `
                 <div class="anime-character-section">
                     <div class="anime-character-card">
-                        <div class="anime-character-header">
-                            <div class="anime-character-info">
-                                <div class="anime-character-name">${character.name}</div>
-                                <div class="anime-character-anime">${character.anime}</div>
-                                <div class="anime-character-element">
-                                    <span class="element-badge">${character.element}</span>
+                        <!-- 캐릭터 이미지 -->
+                        <div class="anime-character-image-container">
+                            <img src="${imageUrl}"
+                                 alt="${character.name}"
+                                 class="anime-character-image"
+                                 onerror="this.src='https://via.placeholder.com/600x400/667eea/ffffff?text=${encodeURIComponent(character.name)}'">
+                            <div class="image-overlay">
+                                <div class="overlay-anime-name">${character.anime}</div>
+                                <div class="overlay-character-name">${character.name}</div>
+                            </div>
+                        </div>
+
+                        <!-- 카드 컨텐츠 -->
+                        <div class="anime-character-content">
+                            <div class="anime-character-header">
+                                <div class="anime-character-info">
+                                    <div class="anime-character-element">
+                                        <span class="element-badge">${character.element}</span>
+                                    </div>
+                                </div>
+                                <div class="anime-character-score">
+                                    <div class="match-score">${matchResult.matchScore}점</div>
+                                    <div class="match-label">매칭도</div>
                                 </div>
                             </div>
-                            <div class="anime-character-score">
-                                <div class="match-score">${matchResult.matchScore}점</div>
-                                <div class="match-label">매칭도</div>
+
+                            <div class="anime-character-description">
+                                ${character.description}
                             </div>
-                        </div>
 
-                        <div class="anime-character-description">
-                            ${character.description}
-                        </div>
+                            <div class="anime-character-reason">
+                                <div class="reason-title">💫 왜 이 캐릭터일까요?</div>
+                                <div class="reason-text">${matchReason}</div>
+                            </div>
 
-                        <div class="anime-character-reason">
-                            <div class="reason-title">💫 왜 이 캐릭터일까요?</div>
-                            <div class="reason-text">${matchReason}</div>
-                        </div>
+                            <div class="anime-character-traits">
+                                <div class="traits-title">🎯 공통 특성</div>
+                                <div class="traits-list">
+                                    ${character.traits.slice(0, 5).map(trait =>
+                                        `<span class="trait-badge">${trait}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
 
-                        <div class="anime-character-traits">
-                            <div class="traits-title">🎯 공통 특성</div>
-                            <div class="traits-list">
-                                ${character.traits.slice(0, 5).map(trait =>
-                                    `<span class="trait-badge">${trait}</span>`
+                            <div class="anime-character-keywords">
+                                ${character.keywords.slice(0, 5).map(keyword =>
+                                    `<span class="keyword-tag">#${keyword}</span>`
                                 ).join('')}
                             </div>
-                        </div>
-
-                        <div class="anime-character-keywords">
-                            ${character.keywords.slice(0, 5).map(keyword =>
-                                `<span class="keyword-tag">#${keyword}</span>`
-                            ).join('')}
                         </div>
                     </div>
                 </div>
