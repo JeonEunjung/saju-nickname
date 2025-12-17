@@ -267,6 +267,54 @@
             box-shadow: var(--shadow-md);
         }
 
+        /* 액션 버튼 그룹 */
+        .action-buttons {
+            display: flex;
+            gap: var(--space-4);
+            margin-top: var(--space-10);
+        }
+
+        .primary-btn, .secondary-btn {
+            flex: 1;
+            padding: 18px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .primary-btn {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: var(--revolut-gray-400);
+            border: 1px solid var(--revolut-gray-200);
+        }
+
+        .secondary-btn:hover {
+            background: var(--revolut-gray-50);
+            color: var(--revolut-white);
+            border-color: var(--revolut-gray-300);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 600px) {
+            .action-buttons {
+                flex-direction: column-reverse;
+            }
+        }
+
         /* 운세 결과 영역 - 중첩 카드 스타일 제거 */
         .fortune-2026 {
             background: transparent !important;
@@ -407,7 +455,10 @@
                 <div id="fortuneResult"></div>
             </div>
 
-            <button class="retry-fortune-btn" onclick="resetFortune()">다시 보기</button>
+            <div class="action-buttons">
+                <button class="secondary-btn" onclick="window.location.href='/'">← 부캐명 추천으로 돌아가기</button>
+                <button class="primary-btn" onclick="window.location.href='anime-character.html'">🎭 나와 닮은 캐릭터 보기</button>
+            </div>
         </div>
     </div>
 

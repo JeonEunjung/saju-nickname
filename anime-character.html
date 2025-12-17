@@ -388,28 +388,52 @@
             transform: scale(1.05);
         }
 
-        /* 재시도 버튼 */
-        .retry-btn {
-            display: block;
-            width: 100%;
+        /* 액션 버튼 그룹 */
+        .action-buttons {
+            display: flex;
+            gap: var(--space-4);
+            margin-top: var(--space-10);
+        }
+
+        .primary-btn, .secondary-btn {
+            flex: 1;
             padding: 18px;
-            margin-top: var(--space-8);
+            border: none;
+            border-radius: var(--radius-md);
             font-size: 16px;
             font-weight: 600;
-            background: transparent;
-            color: var(--revolut-gray-400);
-            border: 1px solid var(--revolut-gray-200);
-            border-radius: var(--radius-md);
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .retry-btn:hover {
+        .primary-btn {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .secondary-btn {
+            background: transparent;
+            color: var(--revolut-gray-400);
+            border: 1px solid var(--revolut-gray-200);
+        }
+
+        .secondary-btn:hover {
             background: var(--revolut-gray-50);
             color: var(--revolut-white);
             border-color: var(--revolut-gray-300);
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+        }
+
+        @media (max-width: 600px) {
+            .action-buttons {
+                flex-direction: column-reverse;
+            }
         }
 
         /* 모바일 반응형 */
@@ -479,7 +503,10 @@
         <!-- 결과 섹션 -->
         <div class="result-section" id="resultSection">
             <div id="animeCharacterResult"></div>
-            <button class="retry-btn" onclick="window.close()">닫기</button>
+            <div class="action-buttons">
+                <button class="secondary-btn" onclick="window.location.href='/'">← 부캐명 추천으로 돌아가기</button>
+                <button class="primary-btn" onclick="window.location.href='fortune-2026.html'">🔮 신년운세 보기</button>
+            </div>
         </div>
     </div>
 
