@@ -213,7 +213,7 @@ header h1 {
 .form-group input:hover,
 .form-group select:hover {
     border-color: var(--revolut-gray-200);
-    background: var(--revolut-gray-50);
+    background-color: var(--revolut-gray-50);
 }
 
 .form-group input:focus,
@@ -221,7 +221,7 @@ header h1 {
     outline: none;
     border-color: var(--revolut-blue);
     border-width: 2px;
-    background: var(--revolut-gray-50);
+    background-color: var(--revolut-gray-50);
     box-shadow: 0 0 0 3px rgba(0, 117, 255, 0.2);
 }
 
@@ -1095,13 +1095,14 @@ html {
     padding: var(--space-5);
     cursor: pointer;
     list-style: none;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-3);
     align-items: center;
     font-size: 16px;
     font-weight: 600;
     color: var(--revolut-white);
-    transition: all var(--transition-fast);
+    transition: background var(--transition-fast);
     user-select: none;
 }
 
@@ -1116,6 +1117,9 @@ html {
 .chevron {
     color: var(--revolut-gray-400);
     transition: transform var(--transition-base);
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
 }
 
 .info-details[open] .chevron {
