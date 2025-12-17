@@ -167,8 +167,25 @@ class AnimeCharacterMatcher {
 
         const sajuTraits = this.extractSajuTraits(sajuData, elementCount);
 
-        // 모든 캐릭터에 대해 매칭 점수 계산
-        const scoredCharacters = this.characters.map(character => ({
+        // 1단계: 오행 필터링 (주요 오행과 일치하는 캐릭터만 선택)
+        let filteredCharacters = this.characters.filter(
+            character => character.element === sajuTraits.element
+        );
+
+        // 주요 오행에 맞는 캐릭터가 없으면 보조 오행 사용
+        if (filteredCharacters.length === 0 && sajuTraits.secondaryElement) {
+            filteredCharacters = this.characters.filter(
+                character => character.element === sajuTraits.secondaryElement
+            );
+        }
+
+        // 그래도 없으면 모든 캐릭터 사용 (fallback)
+        if (filteredCharacters.length === 0) {
+            filteredCharacters = this.characters;
+        }
+
+        // 2단계: 필터링된 캐릭터들에 대해 매칭 점수 계산
+        const scoredCharacters = filteredCharacters.map(character => ({
             character,
             score: this.calculateMatchScore(character, sajuTraits)
         }));

@@ -417,14 +417,15 @@
     <script>
         // 페이지 로드 시 localStorage에서 데이터 확인
         window.addEventListener('DOMContentLoaded', function() {
-            const savedData = localStorage.getItem('fortuneData');
+            const savedData = localStorage.getItem('fortune2026Data');
 
             if (savedData) {
                 // 메인 페이지에서 온 경우 - 바로 운세 표시
                 try {
                     const data = JSON.parse(savedData);
                     displaySavedFortune(data);
-                    localStorage.removeItem('fortuneData'); // 사용 후 삭제
+                    // 사용 후 삭제하지 않음 (뒤로가기 시 필요)
+                    // localStorage.removeItem('fortune2026Data');
                 } catch (error) {
                     console.error('데이터 로드 오류:', error);
                 }

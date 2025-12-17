@@ -39,23 +39,19 @@ app.use(express.json({ limit: '10kb' })); // JSON 페이로드 크기 제한
 // Rate Limiting - API 남용 방지
 const apiLimiter = rateLimit({
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60000, // 1분
-    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 10, // 1분당 최대 10회
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // 1분당 최대 100회 (개발용)
     message: {
         error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
         retryAfter: '1분'
     },
     standardHeaders: true, // RateLimit-* 헤더 반환
-    legacyHeaders: false, // X-RateLimit-* 헤더 비활성화
-    // IP 기반 + User Agent 기반 제한
-    keyGenerator: (req) => {
-        return `${req.ip}_${req.get('User-Agent')}`;
-    }
+    legacyHeaders: false // X-RateLimit-* 헤더 비활성화
 });
 
 // 전역 Rate Limiting (더 관대한 제한)
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15분
-    max: 100, // 15분당 최대 100회
+    max: 1000, // 15분당 최대 1000회 (개발용)
     message: {
         error: '너무 많은 요청이 감지되었습니다. 15분 후 다시 시도해주세요.'
     }
@@ -77,8 +73,8 @@ const globalQuotaCheck = (req, res, next) => {
         globalCounterResetTime = now + 60000;
     }
 
-    // 1분당 최대 50회 글로벌 제한 (모든 IP 합산)
-    const GLOBAL_MAX_PER_MINUTE = parseInt(process.env.GLOBAL_API_LIMIT) || 50;
+    // 1분당 최대 500회 글로벌 제한 (모든 IP 합산) - 개발용
+    const GLOBAL_MAX_PER_MINUTE = parseInt(process.env.GLOBAL_API_LIMIT) || 500;
 
     if (globalApiCallCount >= GLOBAL_MAX_PER_MINUTE) {
         return res.status(429).json({

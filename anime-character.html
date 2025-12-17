@@ -512,15 +512,15 @@
 
                 // 캐릭터 매칭
                 const animeMatch = animeCharacterMatcher.findBestMatch(
-                    data.sajuData,
+                    data.saju,
                     data.elementCount
                 );
 
                 // 결과 표시
                 displayAnimeCharacter(animeMatch);
 
-                // 사용 후 삭제
-                localStorage.removeItem('animeCharacterData');
+                // 사용 후 삭제하지 않음 (뒤로가기 시 필요)
+                // localStorage.removeItem('animeCharacterData');
 
             } catch (error) {
                 console.error('데이터 로드 오류:', error);

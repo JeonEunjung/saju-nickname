@@ -536,16 +536,20 @@ function openFortunePage() {
     }
 
     // localStorage에 데이터 저장
-    localStorage.setItem('fortuneData', JSON.stringify({
+    localStorage.setItem('fortune2026Data', JSON.stringify({
         saju: window.currentSajuData.saju,
         elementCount: window.currentSajuData.elementCount,
         elementAnalysis: window.currentSajuData.elementAnalysis,
+        characteristics: window.currentSajuData.characteristics,
         birthInfo: window.currentSajuData.birthInfo,
         fortuneResult: window.currentSajuData.fortuneResult
     }));
 
-    // 새 탭에서 운세 페이지 열기
-    window.open('fortune-2026.html', '_blank');
+    // 페이지 이동 플래그 설정 (뒤로가기 감지용)
+    sessionStorage.setItem('justNavigated', 'true');
+
+    // 같은 탭에서 운세 페이지 열기
+    window.location.href = 'fortune-2026.html';
 }
 
 // 애니 캐릭터 페이지 열기
@@ -557,12 +561,78 @@ function openAnimeCharacterPage() {
 
     // localStorage에 사주 데이터 저장
     localStorage.setItem('animeCharacterData', JSON.stringify({
-        sajuData: window.currentSajuData.saju,
+        saju: window.currentSajuData.saju,
         elementCount: window.currentSajuData.elementCount,
         elementAnalysis: window.currentSajuData.elementAnalysis,
-        birthInfo: window.currentSajuData.birthInfo
+        characteristics: window.currentSajuData.characteristics,
+        birthInfo: window.currentSajuData.birthInfo,
+        fortuneResult: window.currentSajuData.fortuneResult
     }));
 
-    // 새 탭에서 애니 캐릭터 페이지 열기
-    window.open('anime-character.html', '_blank');
+    // 페이지 이동 플래그 설정 (뒤로가기 감지용)
+    sessionStorage.setItem('justNavigated', 'true');
+
+    // 같은 탭에서 애니 캐릭터 페이지 열기
+    window.location.href = 'anime-character.html';
 }
+
+// 페이지 로드 시 이전 결과 복원
+window.addEventListener('DOMContentLoaded', function() {
+    // sessionStorage로 "방금 페이지 이동했다가 돌아왔는지" 확인
+    const justNavigated = sessionStorage.getItem('justNavigated');
+
+    // justNavigated 플래그가 있으면 뒤로가기로 온 것
+    if (justNavigated) {
+        sessionStorage.removeItem('justNavigated'); // 플래그 제거
+
+        // 뒤로가기로 온 경우 복원 시도
+        const fortuneData = localStorage.getItem('fortune2026Data');
+        const animeData = localStorage.getItem('animeCharacterData');
+
+        if (fortuneData || animeData) {
+            try {
+                const data = JSON.parse(fortuneData || animeData);
+
+                // window.currentSajuData 복원
+                if (data.saju) {
+                    window.currentSajuData = {
+                        saju: data.saju,
+                        elementCount: data.elementCount,
+                        elementAnalysis: data.elementAnalysis,
+                        characteristics: data.characteristics || {},
+                        gender: data.birthInfo?.gender || 'male',
+                        birthInfo: data.birthInfo,
+                        fortuneResult: data.fortuneResult
+                    };
+
+                    // 먼저 결과 재표시
+                    displayResults(
+                        window.currentSajuData.saju,
+                        window.currentSajuData.elementCount,
+                        window.currentSajuData.elementAnalysis,
+                        window.currentSajuData.characteristics,
+                        window.currentSajuData.fortuneResult
+                    );
+
+                    // 그 다음 결과 영역 표시 (폼 숨기고 결과 보이기)
+                    // 약간의 지연을 주어 displayResults가 DOM을 업데이트한 후 실행
+                    setTimeout(() => {
+                        // 인트로 및 입력 섹션 숨기기
+                        const introSection = document.getElementById('introSection');
+                        const inputSection = document.getElementById('inputSection');
+                        const resultSection = document.getElementById('result');
+
+                        if (introSection) introSection.style.display = 'none';
+                        if (inputSection) inputSection.style.display = 'none';
+                        if (resultSection) {
+                            resultSection.style.display = 'block';
+                            // 스크롤은 하지 않음 (뒤로가기니까)
+                        }
+                    }, 0);
+                }
+            } catch (error) {
+                console.error('결과 복원 실패:', error);
+            }
+        }
+    }
+});
