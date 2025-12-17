@@ -1769,29 +1769,45 @@ html {
     }
 }
 
-/* 2026년 운세 CTA 버튼 */
+/* 추가 기능 CTA 버튼들 */
 .fortune-cta-container {
     margin: 60px 0 30px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
 }
 
-.fortune-2026-btn {
+.fortune-2026-btn,
+.anime-character-btn {
     display: inline-block;
     padding: 20px 50px;
     font-size: 1.2rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    color: #1A1A1A;
     border: none;
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
     position: relative;
     overflow: hidden;
+    min-width: 320px;
 }
 
-.fortune-2026-btn::before {
+.fortune-2026-btn {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #1A1A1A;
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+}
+
+.anime-character-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #FFFFFF;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.fortune-2026-btn::before,
+.anime-character-btn::before {
     content: '';
     position: absolute;
     top: 0;
@@ -1802,7 +1818,8 @@ html {
     transition: left 0.5s;
 }
 
-.fortune-2026-btn:hover::before {
+.fortune-2026-btn:hover::before,
+.anime-character-btn:hover::before {
     left: 100%;
 }
 
@@ -1811,13 +1828,21 @@ html {
     box-shadow: 0 12px 30px rgba(255, 215, 0, 0.5);
 }
 
-.fortune-2026-btn:active {
+.anime-character-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.5);
+}
+
+.fortune-2026-btn:active,
+.anime-character-btn:active {
     transform: translateY(-1px) scale(0.98);
 }
 
 @media (max-width: 768px) {
-    .fortune-2026-btn {
+    .fortune-2026-btn,
+    .anime-character-btn {
         padding: 16px 40px;
         font-size: 1.1rem;
+        min-width: 280px;
     }
 }

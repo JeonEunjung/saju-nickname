@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>나와 가장 닮은 애니 캐릭터 - 사주 기반 부캐명 추천</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Design System Variables - 메인 사이트와 일치 */
+        :root {
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --color-primary: #667eea;
+            --color-secondary: #764ba2;
+            --space-4: 16px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-10: 40px;
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
+            --radius-md: 16px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+
+            /* Revolut Dark Theme Colors - 메인 사이트와 동일 */
+            --revolut-black: #0A0A0A;
+            --revolut-white: #FFFFFF;
+            --revolut-card-bg: rgba(26, 26, 26, 0.8);
+            --revolut-card-hover: rgba(38, 38, 38, 0.9);
+            --revolut-dark-bg: rgba(18, 18, 18, 0.8);
+            --revolut-gray-50: rgba(38, 38, 38, 0.8);
+            --revolut-gray-100: rgba(58, 58, 58, 0.6);
+            --revolut-gray-200: rgba(78, 78, 78, 0.8);
+            --revolut-gray-300: rgba(98, 98, 98, 0.8);
+            --revolut-gray-400: #B0B0B0;
+            --revolut-blue: #0075FF;
+        }
+
+        body {
+            background: var(--revolut-black);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--revolut-white);
+            padding: var(--space-6);
+        }
+
+        .anime-page-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: var(--space-10) var(--space-6);
+        }
+
+        /* 헤더 섹션 */
+        .anime-page-header {
+            text-align: center;
+            margin-bottom: var(--space-10);
+            padding: var(--space-8) 0;
+        }
+
+        .anime-page-header h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            margin-bottom: var(--space-4);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+        }
+
+        .anime-page-header p {
+            color: var(--revolut-gray-400);
+            font-size: clamp(16px, 2vw, 18px);
+            line-height: 1.6;
+            margin-top: var(--space-4);
+        }
+
+        /* 백 링크 */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: var(--space-6);
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .back-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(-4px);
+            color: var(--color-secondary);
+        }
+
+        /* 로딩 섹션 */
+        .loading-section {
+            text-align: center;
+            padding: var(--space-10) 0;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--revolut-gray-100);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--space-6);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 결과 섹션 */
+        .result-section {
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 애니 캐릭터 섹션 */
+        .anime-character-section {
+            padding: var(--space-8) 0;
+        }
+
+        .anime-character-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: var(--space-8);
+        }
+
+        .anime-character-emoji {
+            font-size: 48px;
+        }
+
+        .anime-character-title h2 {
+            font-size: clamp(28px, 5vw, 36px);
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+
+        .anime-character-card {
+            background: var(--revolut-card-bg);
+            border: 1px solid var(--revolut-gray-100);
+            border-radius: var(--radius-xl);
+            padding: var(--space-10);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--space-8);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .anime-character-card:hover {
+            background: var(--revolut-card-hover);
+            border-color: var(--revolut-gray-200);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .anime-character-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-6);
+            border-bottom: 1px solid var(--revolut-gray-100);
+        }
+
+        .anime-character-info {
+            flex: 1;
+        }
+
+        .anime-character-name {
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: 700;
+            color: var(--revolut-white);
+            margin-bottom: 8px;
+        }
+
+        .anime-character-anime {
+            font-size: 16px;
+            color: var(--revolut-gray-400);
+            margin-bottom: 16px;
+        }
+
+        .anime-character-element {
+            display: inline-block;
+        }
+
+        .element-badge {
+            display: inline-block;
+            padding: 8px 18px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .anime-character-score {
+            text-align: center;
+            padding: 16px 24px;
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid var(--color-primary);
+            border-radius: 20px;
+        }
+
+        .match-score {
+            font-size: 36px;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+        }
+
+        .match-label {
+            font-size: 13px;
+            color: var(--revolut-gray-400);
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        .anime-character-description {
+            font-size: 17px;
+            line-height: 1.7;
+            color: var(--revolut-gray-400);
+            margin-bottom: var(--space-8);
+            padding: var(--space-6);
+            background: var(--revolut-dark-bg);
+            border-radius: 16px;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .anime-character-reason {
+            margin-bottom: var(--space-8);
+            padding: var(--space-6);
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 16px;
+        }
+
+        .reason-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 12px;
+        }
+
+        .reason-text {
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--revolut-white);
+        }
+
+        .anime-character-traits {
+            margin-bottom: var(--space-8);
+        }
+
+        .traits-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--revolut-white);
+            margin-bottom: 16px;
+        }
+
+        .traits-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .trait-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--revolut-gray-50);
+            border: 1px solid var(--revolut-gray-100);
+            color: var(--revolut-white);
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .trait-badge:hover {
+            background: var(--revolut-gray-200);
+            border-color: var(--color-primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .anime-character-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: var(--space-6);
+            border-top: 1px solid var(--revolut-gray-100);
+        }
+
+        .keyword-tag {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--color-primary);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .keyword-tag:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* 재시도 버튼 */
+        .retry-btn {
+            display: block;
+            width: 100%;
+            padding: 18px;
+            margin-top: var(--space-8);
+            font-size: 16px;
+            font-weight: 600;
+            background: transparent;
+            color: var(--revolut-gray-400);
+            border: 1px solid var(--revolut-gray-200);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .retry-btn:hover {
+            background: var(--revolut-gray-50);
+            color: var(--revolut-white);
+            border-color: var(--revolut-gray-300);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 768px) {
+            body {
+                padding: var(--space-4);
+            }
+
+            .anime-page-container {
+                padding: 0;
+            }
+
+            .anime-character-card {
+                padding: var(--space-6);
+            }
+
+            .anime-character-header {
+                flex-direction: column;
+                gap: var(--space-4);
+            }
+
+            .anime-character-score {
+                align-self: flex-end;
+            }
+
+            .anime-character-name {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .anime-page-header h1 {
+                font-size: 28px;
+            }
+
+            .anime-character-card {
+                padding: var(--space-4);
+            }
+
+            .match-score {
+                font-size: 30px;
+            }
+
+            .trait-badge,
+            .keyword-tag {
+                font-size: 13px;
+                padding: 8px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="anime-page-container">
+        <a href="/" class="back-link">← 부캐명 추천으로 돌아가기</a>
+
+        <div class="anime-page-header">
+            <h1>🎭 나와 가장 닮은 애니 캐릭터</h1>
+            <p>사주팔자 기반으로 당신과 가장 잘 맞는 애니 캐릭터를 찾아드립니다</p>
+        </div>
+
+        <!-- 로딩 섹션 -->
+        <div class="loading-section" id="loadingSection">
+            <div class="loading-spinner"></div>
+            <p style="color: var(--revolut-gray-400);">캐릭터를 찾고 있습니다...</p>
+        </div>
+
+        <!-- 결과 섹션 -->
+        <div class="result-section" id="resultSection">
+            <div id="animeCharacterResult"></div>
+            <button class="retry-btn" onclick="window.close()">닫기</button>
+        </div>
+    </div>
+
+    <script src="saju.js"></script>
+    <script src="anime-matcher.js"></script>
+    <script>
+        // 페이지 로드 시 localStorage에서 데이터 확인
+        window.addEventListener('DOMContentLoaded', async function() {
+            const savedData = localStorage.getItem('animeCharacterData');
+
+            if (!savedData) {
+                alert('사주 데이터가 없습니다. 메인 페이지에서 먼저 사주를 분석해주세요.');
+                window.close();
+                return;
+            }
+
+            try {
+                const data = JSON.parse(savedData);
+
+                // 캐릭터 데이터 로드 대기
+                let retries = 0;
+                while (!animeCharacterMatcher.characters && retries < 20) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    retries++;
+                }
+
+                if (!animeCharacterMatcher.characters) {
+                    throw new Error('캐릭터 데이터를 로드하지 못했습니다.');
+                }
+
+                // 캐릭터 매칭
+                const animeMatch = animeCharacterMatcher.findBestMatch(
+                    data.sajuData,
+                    data.elementCount
+                );
+
+                // 결과 표시
+                displayAnimeCharacter(animeMatch);
+
+                // 사용 후 삭제
+                localStorage.removeItem('animeCharacterData');
+
+            } catch (error) {
+                console.error('데이터 로드 오류:', error);
+                alert('캐릭터 매칭 중 오류가 발생했습니다.');
+                window.close();
+            }
+        });
+
+        // 애니 캐릭터 결과 표시
+        function displayAnimeCharacter(matchResult) {
+            if (!matchResult) {
+                return;
+            }
+
+            const character = matchResult.bestMatch;
+            const matchReason = animeCharacterMatcher.generateMatchReason(character, matchResult.sajuTraits);
+
+            const html = `
+                <div class="anime-character-section">
+                    <div class="anime-character-card">
+                        <div class="anime-character-header">
+                            <div class="anime-character-info">
+                                <div class="anime-character-name">${character.name}</div>
+                                <div class="anime-character-anime">${character.anime}</div>
+                                <div class="anime-character-element">
+                                    <span class="element-badge">${character.element}</span>
+                                </div>
+                            </div>
+                            <div class="anime-character-score">
+                                <div class="match-score">${matchResult.matchScore}점</div>
+                                <div class="match-label">매칭도</div>
+                            </div>
+                        </div>
+
+                        <div class="anime-character-description">
+                            ${character.description}
+                        </div>
+
+                        <div class="anime-character-reason">
+                            <div class="reason-title">💫 왜 이 캐릭터일까요?</div>
+                            <div class="reason-text">${matchReason}</div>
+                        </div>
+
+                        <div class="anime-character-traits">
+                            <div class="traits-title">🎯 공통 특성</div>
+                            <div class="traits-list">
+                                ${character.traits.slice(0, 5).map(trait =>
+                                    `<span class="trait-badge">${trait}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+
+                        <div class="anime-character-keywords">
+                            ${character.keywords.slice(0, 5).map(keyword =>
+                                `<span class="keyword-tag">#${keyword}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('animeCharacterResult').innerHTML = html;
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('resultSection').classList.add('show');
+        }
+    </script>
+</body>
+</html>

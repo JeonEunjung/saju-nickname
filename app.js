@@ -547,3 +547,22 @@ function openFortunePage() {
     // 새 탭에서 운세 페이지 열기
     window.open('fortune-2026.html', '_blank');
 }
+
+// 애니 캐릭터 페이지 열기
+function openAnimeCharacterPage() {
+    if (!window.currentSajuData) {
+        alert('먼저 사주 분석을 완료해주세요.');
+        return;
+    }
+
+    // localStorage에 사주 데이터 저장
+    localStorage.setItem('animeCharacterData', JSON.stringify({
+        sajuData: window.currentSajuData.saju,
+        elementCount: window.currentSajuData.elementCount,
+        elementAnalysis: window.currentSajuData.elementAnalysis,
+        birthInfo: window.currentSajuData.birthInfo
+    }));
+
+    // 새 탭에서 애니 캐릭터 페이지 열기
+    window.open('anime-character.html', '_blank');
+}
